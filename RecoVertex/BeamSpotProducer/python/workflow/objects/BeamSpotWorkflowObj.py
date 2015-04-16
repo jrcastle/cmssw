@@ -59,7 +59,7 @@ class BeamSpotWorkflow(object):
         self.logger = initLogger(filename          = 'beamspot_workflow.log', 
                                  mode              = 'w+',
                                  formatter         = '[%(asctime)s] [%(levelname)-8s] '  \
-                                                     '[%(funcName)-33s : L%(lineno)4d]: '\ 
+                                                     '[%(funcName)-33s : L%(lineno)4d]: '\
                                                      '%(message)s ',
                                  formatter_options = '%Y-%m-%d %H:%M:%S',
                                  emails            = mailList,
