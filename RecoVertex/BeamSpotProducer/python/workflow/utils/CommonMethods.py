@@ -61,31 +61,6 @@ def timeoutManager(type,timeout=-1,fileName=".timeout"):
 
     return timeoutType
 
-
-###########################################################################################
-def setLockName(name):
-    global lockFile
-    lockFile = name
-    
-###########################################################################################
-def checkLock():
-    global lockFile
-    if os.path.isfile(lockFile):
-        return True
-    else:
-        return False
-    
-###########################################################################################
-def lock():
-    global lockFile
-    commands.getstatusoutput( "touch " + lockFile)
-
-###########################################################################################
-def rmLock():
-    global lockFile
-    if checkLock():
-        commands.getstatusoutput( "rm " + lockFile)
-
 ###########################################################################################
 def exit(msg=""):
     rmLock()
@@ -142,18 +117,6 @@ optparse.Values.__nonzero__ = nonzero # dynamically fix optparse.Values
 class ParsingError(Exception): pass
 
 ###########################################################################################
-# General utilities
-###########################################################################################
-###########################################################################################
-def sendEmail(mailList,error):
-    print "Sending email to " + mailList + " with body: " + error
-    list = mailList.split(',')
-    for email in list:
-        p = os.popen("mail -s \"Automatic workflow error\" " + email ,"w")
-        p.write(error)
-        status = p.close() 
-
-###########################################################################################
 def dirExists(dir):
     if dir.find("castor") != -1:
     	lsCommand = "nsls " + dir
@@ -184,41 +147,6 @@ def ls(dir,filter=""):
             exit("ERROR: File or directory " + dir + " doesn't exist") 
 
     return listOfFiles            
-
-########################################################################
-def cp(fromDir,toDir,listOfFiles,overwrite=False,smallList=False):
-    cpCommand   = ''
-    copiedFiles = []
-    if fromDir.find('castor') != -1 or toDir.find('castor') != -1 :
-    	cpCommand = 'rf'
-    elif fromDir.find('resilient') != -1:
-    	cpCommand = 'dc'
-    if fromDir[len(fromDir)-1] != '/':
-        fromDir += '/'
-
-    if toDir[len(toDir)-1] != '/':
-        toDir += '/'
-        
-    for file in listOfFiles:
-        if os.path.isfile(toDir+file):
-            if overwrite:
-                print "File " + file + " already exists in destination directory. We will overwrite it."
-            else:
-                print "File " + file + " already exists in destination directory. We will Keep original file."
-                if not smallList:
-                    copiedFiles.append(file)
-                continue
-    	# copy to local disk
-    	aCommand = cpCommand + 'cp '+ fromDir + file + " " + toDir
-    	print " >> " + aCommand
-        tmpStatus = commands.getstatusoutput( aCommand )
-        if tmpStatus[0] == 0:
-            copiedFiles.append(file)
-        else:
-            print "[cp()]\tERROR: Can't copy file " + file
-    return copiedFiles
-
-########################################################################
 
 
 ###########################################################################################

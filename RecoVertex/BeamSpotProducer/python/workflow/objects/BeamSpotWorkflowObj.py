@@ -6,7 +6,8 @@ import sys
 import RecoVertex.BeamSpotProducer.workflow.utils.colorer
 
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
-from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import cp, ls, readBeamSpotFile, sortAndCleanBeamList, timeoutManager, createWeightedPayloads
+from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import ls, readBeamSpotFile, sortAndCleanBeamList, setLockName
+from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import timeoutManager, createWeightedPayloads, checkLock, lock
 
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_crab, error_lumi_range, error_run_not_in_DBS, error_timeout
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_out_of_tolerance, error_run_not_in_rr, error_missing_large_run
@@ -15,11 +16,15 @@ from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_iov_n
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import warning_missing_small_run, warning_no_valid_fit, warning_unable_to_create_payload 
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import warning_setting_dbs_mismatch_timeout, warning_dbs_mismatch_timeout_progress
 
-from RecoVertex.BeamSpotProducer.workflow.utils.initCrab      import initCrab
+# from RecoVertex.BeamSpotProducer.workflow.utils.initCrab      import initCrab
 from RecoVertex.BeamSpotProducer.workflow.utils.initLogger    import initLogger
 from RecoVertex.BeamSpotProducer.workflow.utils.smartCopy     import cyclicCp
+from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi   import setupDbsApi
+from RecoVertex.BeamSpotProducer.workflow.utils.locker        import Locker
 
-initCrab()
+# RIC cannot make it work, as the environment variables set in 
+# a subprocess don't outlive the subprocess itself
+# initCrab() 
 
 if sys.version_info < (2,6,0):
     print 'Python interpreter version < 2.6.0'
@@ -67,7 +72,7 @@ class BeamSpotWorkflow(object):
         
         self.logger.info('Initialising a BeamSpotWorkflow class')
 
-        self._setupDbsApi()
+        self.api = setupDbsApi(logger = self.logger)
 
         self.sourceDir             = sourceDir
         self.archiveDir            = archiveDir
@@ -88,17 +93,6 @@ class BeamSpotWorkflow(object):
         self._checkIfAlreadyRunning()
         self._setupDirectories()
 
-    def _setupDbsApi(self, url = 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader'):
-        ''' 
-        Adding api for dbs3 queries.
-        Default = https://cmsweb.cern.ch/dbs/prod/global/DBSReader DBS3
-        '''
-        # FIXME: RIC: cannot make it work
-        #os.environ.update(initCrab())
-        #import pdb ; pdb.set_trace()
-        from dbs.apis.dbsClient import DbsApi
-        self.logger.info('Opening a DBS3 instance %s' %url)
-        self.api = DbsApi(url = url)
 
     def _checkIfAlreadyRunning(self):
         '''
@@ -106,7 +100,14 @@ class BeamSpotWorkflow(object):
         running
         '''
         self.logger.info('Check whether another script is running')        
-        pass
+        
+        self.locker = Locker('locker.lock')
+        
+        if self.locker.checkLock():
+            self.logger.error('There is already a megascript runnning... exiting')
+            exit()
+        else:
+            self.locker.lock()
 
     def _setupDirectories(self):
         '''
@@ -144,7 +145,8 @@ class BeamSpotWorkflow(object):
         dbError = commands.getstatusoutput( listIOVCommand )
         if dbError[0] != 0 :
             if 'metadata entry {TAGNAME} does not exist'.format(TAGNAME= self.tagName) in dbError[1]:
-                self.logger.warning('Creating a new tag because I got the following error contacting the DB \n%s' %dbError[1])
+                self.logger.warning('Creating a new tag because I got the following '\
+                                    'error contacting the DB \n%s' %dbError[1])
                 return 1
             else:
                 self.logger.error(error_cant_connect_db(dbError[1]))
@@ -488,8 +490,12 @@ class BeamSpotWorkflow(object):
         payloadList = createWeightedPayloads(self.workingDir + self.payloadFileName,
                                              beamSpotObjList, runBased)
         if len(payloadList) == 0:
-            warning_unable_to_create_payload()
-
+            self.logger.warning(warning_unable_to_create_payload())
+        
+        
+        if hasattr(self, 'locker'):
+            self.locker.unlock()
+        
 
 if __name__ == '__main__':
 
