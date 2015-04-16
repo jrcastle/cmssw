@@ -9,13 +9,17 @@ import RecoVertex.BeamSpotProducer.workflow.utils.colorer
 
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj  import BeamSpot
 from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods  import cp, ls, readBeamSpotFile, sortAndCleanBeamList, timeoutManager, createWeightedPayloads
+
 from RecoVertex.BeamSpotProducer.workflow.utils.error_messages import error_crab, error_lumi_range, error_run_not_in_DBS, error_timeout
 from RecoVertex.BeamSpotProducer.workflow.utils.error_messages import error_out_of_tolerance, error_run_not_in_rr, error_missing_large_run
 from RecoVertex.BeamSpotProducer.workflow.utils.error_messages import error_source_dir, error_failed_copy, error_failed_copy_dirs, error_sql_write_failed 
 from RecoVertex.BeamSpotProducer.workflow.utils.error_messages import error_iov_not_implemented, error_iov_unrecognised, error_tag_exist_last_iov_doesnt, error_cant_connect_db
 from RecoVertex.BeamSpotProducer.workflow.utils.error_messages import warning_missing_small_run, warning_no_valid_fit, warning_unable_to_create_payload 
 from RecoVertex.BeamSpotProducer.workflow.utils.error_messages import warning_setting_dbs_mismatch_timeout, warning_dbs_mismatch_timeout_progress
+
 from RecoVertex.BeamSpotProducer.workflow.utils.initCrab       import initCrab
+
+from RecoVertex.BeamSpotProducer.workflow.utils.initLogger     import initLogger
 
 initCrab()
 
@@ -51,7 +55,17 @@ class BeamSpotWorkflow(object):
                  mailList             ,
                  payloadFileName      ):
 
-        self._initLogger(stream_level = 'debug', emails = mailList)
+                
+        self.logger = initLogger(filename          = 'beamspot_workflow.log', 
+                                 mode              = 'w+',
+                                 formatter         = '[%(asctime)s] [%(levelname)-8s] '  \
+                                                     '[%(funcName)-33s : L%(lineno)4d]: '\ 
+                                                     '%(message)s ',
+                                 formatter_options = '%Y-%m-%d %H:%M:%S',
+                                 emails            = mailList,
+                                 file_level        = 'info',
+                                 stream_level      = 'info',
+                                 email_level       = 'critical')
         
         self.logger.info('Initialising a BeamSpotWorkflow class')
 
@@ -75,77 +89,6 @@ class BeamSpotWorkflow(object):
         
         self._checkIfAlreadyRunning()
         self._setupDirectories()
-
-
-    def _initLogger(self,
-                    filename = 'beamspot_workflow.log', mode = 'w+',
-                    formatter = '[%(asctime)s] [%(levelname)-8s] [%(funcName)-33s : L%(lineno)4d]: %(message)s ', 
-                    formatter_options = '%Y-%m-%d %H:%M:%S',
-                    emails = ['manzoni@cern'],
-                    file_level   = 'info',
-                    stream_level = 'info',
-                    email_level  = 'critical'):
-    
-        from logging          import getLogger, FileHandler, StreamHandler, Formatter
-        from logging          import DEBUG, INFO, CRITICAL, WARNING, ERROR
-        from logging.handlers import SMTPHandler
-      
-        from getpass import getuser
-        from socket  import gethostname
-
-        levels = {'debug'   : DEBUG   ,
-                  'info'    : INFO    ,
-                  'warning' : WARNING ,
-                  'error'   : ERROR   ,
-                  'critical': CRITICAL}
-      
-        user, host = getuser(), gethostname()
-        subject = 'URGENT! BeamSpot worflow critical error'  
-          
-        logger = getLogger('beamsporWorkflow')
-        logger.setLevel(DEBUG)
-      
-        date = datetime.datetime.now().date().isoformat()
-        time = str(datetime.datetime.now().time()).split('.')[0].split(':')
-        h = time[0]
-        m = time[1]
-        s = time[2]
-        
-        if not filename.endswith('.log'):
-            filename = filename.replace(filename.split('.')[-1:],'log')
-        
-        filename_appendix = '_date_{DATE}_time{H}-{M}-{S}.log'.format(HOST = host,
-                                                                      DATE = date,
-                                                                      H    = h   ,
-                                                                      M    = m   ,
-                                                                      S    = s   )
-        
-        filename = filename.replace('.log', filename_appendix)
-               
-        fh = FileHandler(filename = filename, mode = mode)
-        ch = StreamHandler()
-        mh = SMTPHandler(mailhost    = host              ,
-                         fromaddr    = user + '@cern.ch' ,
-                         toaddrs     = emails            ,
-                         subject     = subject           ,
-                         credentials = None              ,
-                         secure      = None              )
-      
-        fh.setLevel(levels[file_level  ])
-        ch.setLevel(levels[stream_level])
-        mh.setLevel(levels[email_level ])
-      
-        format = Formatter(formatter, formatter_options)
-      
-        fh.setFormatter(format)
-        ch.setFormatter(format)
-        mh.setFormatter(format)
-      
-        logger.addHandler(fh)
-        logger.addHandler(ch)
-        logger.addHandler(mh)
-        
-        self.logger = logger
 
     def _setupDbsApi(self, url = 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader'):
         ''' 
