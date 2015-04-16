@@ -140,6 +140,32 @@ def error_tag_exist_last_iov_doesnt(tagName):
     return msg
 
 
+def warning_create_new_tag(dbError):
+    msg = 'Creating a new tag because I got the following '\
+          'error contacting the DB \n%s' %dbError
+    return msg
+    
+    
+def warning_not_all_file_yet(run, runsAndFiles, nFiles):
+    msg = 'I haven\'t processed all files yet : {RUNSNFILES} out of '\
+          '{NFILES} for run: {RUN}'.firmat(RUNSNFILES = str(len(runsAndFiles[run])),
+                                           NFILES     = str(nFiles),
+                                           RUN        = str(run))
+    return msg
+    
+
+def warning_dbs_mismatch_setting_timeout(run):    
+    msg = 'Setting the DBS_VERY_BIG_MISMATCH_Run{RUN} timeout because '\
+          'I haven\'t processed all files!'.format(RUN = str(run))
+    return msg
+    
+    
+def warning_dbs_mismatch_timeout(run):
+    msg = 'Timeout DBS_VERY_BIG_MISMATCH_Run{RUN} '\
+          'is in progress.'.format(RUN = str(run))
+    return msg
+
+
 def error_cant_connect_db(dbError):
     msg = 'Can\'t connect to db because:\n' + dbError
     return msg
@@ -154,4 +180,22 @@ def warning_setting_dbs_mismatch_timeout(run):
 def warning_dbs_mismatch_timeout_progress(run):
     msg = 'Timeout DBS_MISMATCH_Run{RUN} '\
           'is in progress.'.format(RUN = str(run))
+    return msg
+    
+
+def warning_more_lumi_than_dbs():
+    msg = 'This is weird because I processed more lumis than the ones that are in DBS!'
+    return msg
+    
+
+def warning_some_lumi_not_processed(run):
+    msg = 'I have not processed some of the lumis that are in the run '\
+          'registry for run: {RUN}'.format(RUN = str(run))
+    return msg
+    
+    
+def warning_bad_rr_size(badRRProcessed, badDBSProcessed):
+    msg = 'badRRProcessed size is {BADRR} and badDBSProcessed size '\
+          'is {BADDBS}'.format(BADRR  = str(len(badRRProcessed))  ,
+                               BADBDS = str(len(badDBSProcessed)) )
     return msg
