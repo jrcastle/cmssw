@@ -8,16 +8,16 @@ import RecoVertex.BeamSpotProducer.workflow.utils.colorer
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import cp, ls, readBeamSpotFile, sortAndCleanBeamList, timeoutManager, createWeightedPayloads
 
-from RecoVertex.BeamSpotProducer.workflow.utils.erroMessages  import error_crab, error_lumi_range, error_run_not_in_DBS, error_timeout
-from RecoVertex.BeamSpotProducer.workflow.utils.erroMessages  import error_out_of_tolerance, error_run_not_in_rr, error_missing_large_run
-from RecoVertex.BeamSpotProducer.workflow.utils.erroMessages  import error_source_dir, error_failed_copy, error_failed_copy_dirs, error_sql_write_failed 
-from RecoVertex.BeamSpotProducer.workflow.utils.erroMessages  import error_iov_not_implemented, error_iov_unrecognised, error_tag_exist_last_iov_doesnt, error_cant_connect_db
-from RecoVertex.BeamSpotProducer.workflow.utils.erroMessages  import warning_missing_small_run, warning_no_valid_fit, warning_unable_to_create_payload 
-from RecoVertex.BeamSpotProducer.workflow.utils.erroMessages  import warning_setting_dbs_mismatch_timeout, warning_dbs_mismatch_timeout_progress
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_crab, error_lumi_range, error_run_not_in_DBS, error_timeout
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_out_of_tolerance, error_run_not_in_rr, error_missing_large_run
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_source_dir, error_failed_copy, error_failed_copy_dirs, error_sql_write_failed 
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_iov_not_implemented, error_iov_unrecognised, error_tag_exist_last_iov_doesnt, error_cant_connect_db
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import warning_missing_small_run, warning_no_valid_fit, warning_unable_to_create_payload 
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import warning_setting_dbs_mismatch_timeout, warning_dbs_mismatch_timeout_progress
 
 from RecoVertex.BeamSpotProducer.workflow.utils.initCrab      import initCrab
-
 from RecoVertex.BeamSpotProducer.workflow.utils.initLogger    import initLogger
+from RecoVertex.BeamSpotProducer.workflow.utils.smartCopy     import cyclicCp
 
 initCrab()
 
@@ -182,13 +182,13 @@ class BeamSpotWorkflow(object):
         '''This function takes the list of files already processed and checks if
            the run number of those files is greater than the last uploaded IOV
         '''
-        self.logger.info('Getting list of files processed after IOV %s'  %str(lastUploadedIOV))
+        self.logger.info('Getting list of files processed after IOV %s:'  %str(lastUploadedIOV))
         newRunList = []
         listOfFiles = ls(fromDir,'.txt')
         runFileMap = {}
         for fileName in listOfFiles:
             runNumber = self.getRunNumberFromFileName(fileName)
-            print str(fileName)+' run: '+str(runNumber)
+            self.logger.info('\t'+str(fileName)+' run: '+str(runNumber))
             if runNumber > lastUploadedIOV:
                 newRunList.append(fileName)
 
@@ -425,19 +425,6 @@ class BeamSpotWorkflow(object):
                     return filesToProcess
 
         return filesToProcess
-
-    def _copyFromToFiles(self, fromDir, toDir, listOfFiles, attempts = 3):
-        self.logger.info('Copying files from %s to %s' %(fromDir, toDir))
-        copiedFiles = []
-        for i in range(attempts):
-            self.logger.info('\t|___ Attempt %d' %(i+1))
-            copiedFiles = cp(fromDir, toDir, listOfFiles)
-            if len(copiedFiles) == len(listOfFiles):
-                self.logger.info('\t\t|___ %d/%d files copied' %(len(copiedFiles), len(listOfFiles)))
-                break
-        if len(copiedFiles) != len(listOfFiles):            
-            self.logger.error(error_failed_copy(copiedFiles, listOfFiles))
-        return copiedFiles
         
     def process(self):
         
@@ -461,7 +448,8 @@ class BeamSpotWorkflow(object):
         newProcessedFileList = self.getNewFileList(self.sourceDir, lastUploadedIOV)
 
         ######### Copy files to archive directory
-        copiedFiles = self._copyFromToFiles(self.sourceDir, self.archiveDir, newProcessedFileList)
+        copiedFiles = cyclicCp(self.sourceDir, self.archiveDir, 
+                               newProcessedFileList, logger = self.logger)
         
         ######### Get from DBS the list of Runs and lumis last IOV
         listOfRunsAndLumiFromDBS  = self.getListOfRunsAndLumiFromDBS(self.dataSet, lastUploadedIOV)
@@ -477,7 +465,8 @@ class BeamSpotWorkflow(object):
            exit('There are no files to process')
 
         ######### Copy files to working directory
-        copiedFiles = self._copyFromToFiles(self.archiveDir, self.workingDir, selectedFilesToProcess)
+        copiedFiles = cyclicCp(self.archiveDir, self.workingDir, 
+                               selectedFilesToProcess, logger = self.logger)
 
         self.logger.info('Sorting and cleaning beamlist')
         beamSpotObjList = []
