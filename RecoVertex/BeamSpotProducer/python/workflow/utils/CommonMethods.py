@@ -547,7 +547,7 @@ def sortAndCleanBeamList(listbeam=[],IOVbase="lumibase"):
 
 ###########################################################################################
 # CREATE FILE FOR PAYLOADS
-def createWeightedPayloads(fileName,listbeam=[],weighted=True):
+def createWeightedPayloads(fileName,listbeam=[],weighted=True, logger=None):
     newlistbeam = []
     tmpbeam = BeamSpot()
     docreate = True
@@ -707,7 +707,8 @@ def createWeightedPayloads(fileName,listbeam=[],weighted=True):
             #if ii == len(listbeam)-1:
             tmpbeam.IOVlast = ibeam.IOVlast
             tmpbeam.IOVEndTime = ibeam.IOVEndTime
-            print "  Run: "+tmpbeam.Run +" Lumi1: "+str(tmpbeam.IOVfirst) + " Lumi2: "+str(tmpbeam.IOVlast)
+            if logger: logger.info("Run: "+tmpbeam.Run +" Lumi1: "+str(tmpbeam.IOVfirst) + " Lumi2: "+str(tmpbeam.IOVlast))
+            else     : print "  Run: "+tmpbeam.Run +" Lumi1: "+str(tmpbeam.IOVfirst) + " Lumi2: "+str(tmpbeam.IOVlast)
             newlistbeam.append(tmpbeam)
             tmpbeam = BeamSpot()
             countlumi = 0

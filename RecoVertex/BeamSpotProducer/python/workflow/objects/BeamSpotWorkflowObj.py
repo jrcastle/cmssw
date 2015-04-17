@@ -6,8 +6,7 @@ import sys
 import RecoVertex.BeamSpotProducer.workflow.utils.colorer
 
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
-from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import ls, readBeamSpotFile, sortAndCleanBeamList, setLockName
-from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import timeoutManager, createWeightedPayloads, checkLock, lock
+from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import ls, readBeamSpotFile, sortAndCleanBeamList, timeoutManager, createWeightedPayloads
 
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_crab, error_lumi_range, error_run_not_in_DBS, error_timeout
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_out_of_tolerance, error_run_not_in_rr, error_missing_large_run
@@ -41,56 +40,43 @@ class BeamSpotWorkflow(object):
     FIXME! docstring to be written
     '''
 
-    def __init__(self                 ,
-                 sourceDir            ,
-                 archiveDir           ,
-                 workingDir           ,
-                 databaseTag          ,
-                 dataSet              ,
-                 fileIOVBase          ,
-                 dbIOVBase            ,
-                 dbsTolerance         ,
-                 dbsTolerancePercent  ,
-                 rrTolerance          ,
-                 missingFilesTolerance,
-                 missingLumisTimeout  ,
-                 jsonFileName         ,
-                 mailList             ,
-                 payloadFileName      ):
-
+    def __init__(self, cfg, lock, overwrite):
                 
         self.logger = initLogger(filename          = 'beamspot_workflow.log', 
-                                 mode              = 'w+',
-                                 formatter         = '[%(asctime)s] [%(levelname)-8s] '  \
-                                                     '[%(funcName)-33s : L%(lineno)4d]: '\
-                                                     '%(message)s ',
-                                 formatter_options = '%Y-%m-%d %H:%M:%S',
-                                 emails            = mailList,
-                                 file_level        = 'info',
-                                 stream_level      = 'info',
-                                 email_level       = 'critical')
+                                 mode              = 'w+'                   ,
+                                 formatter         = '[%(asctime)s] '     \
+                                                     '[%(levelname)-8s] ' \
+                                                     '[%(funcName)-33s : '\
+                                                     'L%(lineno)4d]: '    \
+                                                     '%(message)s '         ,
+                                 formatter_options = '%Y-%m-%d %H:%M:%S'    ,
+                                 emails            = cfg.mailList           ,
+                                 file_level        = 'info'                 ,
+                                 stream_level      = 'info'                 ,
+                                 email_level       = 'critical'             )
         
         self.logger.info('Initialising a BeamSpotWorkflow class')
 
         self.api = setupDbsApi(logger = self.logger)
 
-        self.sourceDir             = sourceDir
-        self.archiveDir            = archiveDir
-        self.workingDir            = workingDir
-        self.databaseTag           = databaseTag
-        self.dataSet               = dataSet
-        self.fileIOVBase           = fileIOVBase
-        self.dbIOVBase             = dbIOVBase
-        self.dbsTolerance          = dbsTolerance
-        self.dbsTolerancePercent   = dbsTolerancePercent
-        self.rrTolerance           = rrTolerance
-        self.missingFilesTolerance = missingFilesTolerance
-        self.missingLumisTimeout   = missingLumisTimeout
-        self.jsonFileName          = jsonFileName
-        self.mailList              = mailList
-        self.payloadFileName       = payloadFileName
+        self.sourceDir             = cfg.sourceDir
+        self.archiveDir            = cfg.archiveDir
+        self.workingDir            = cfg.workingDir
+        self.databaseTag           = cfg.databaseTag
+        self.dataSet               = cfg.dataSet
+        self.fileIOVBase           = cfg.fileIOVBase
+        self.dbIOVBase             = cfg.dbIOVBase
+        self.dbsTolerance          = cfg.dbsTolerance
+        self.dbsTolerancePercent   = cfg.dbsTolerancePercent
+        self.rrTolerance           = cfg.rrTolerance
+        self.missingFilesTolerance = cfg.missingFilesTolerance
+        self.missingLumisTimeout   = cfg.missingLumisTimeout
+        self.jsonFileName          = cfg.jsonFileName
+        self.mailList              = cfg.mailList
+        self.payloadFileName       = cfg.payloadFileName
         
-        self._checkIfAlreadyRunning()
+        if lock: 
+            self._checkIfAlreadyRunning()
         self._setupDirectories()
 
 
@@ -104,7 +90,8 @@ class BeamSpotWorkflow(object):
         self.locker = Locker('locker.lock')
         
         if self.locker.checkLock():
-            self.logger.error('There is already a megascript runnning... exiting')
+            self.logger.error('There is already a megascript '\
+                              'runnning... exiting')
             exit()
         else:
             self.locker.lock()
@@ -184,7 +171,8 @@ class BeamSpotWorkflow(object):
         '''This function takes the list of files already processed and checks if
            the run number of those files is greater than the last uploaded IOV
         '''
-        self.logger.info('Getting list of files processed after IOV %s:'  %str(lastUploadedIOV))
+        self.logger.info('Getting list of files processed '\
+                         'after IOV %s:'  %str(lastUploadedIOV))
         newRunList = []
         listOfFiles = ls(fromDir,'.txt')
         runFileMap = {}
@@ -195,7 +183,8 @@ class BeamSpotWorkflow(object):
                 newRunList.append(fileName)
 
         if len(newRunList) == 0:
-            self.logger.error('There are no new runs after %s' %str(lastUploadedIOV))
+            self.logger.error('There are no new runs '\
+                              'after %s' %str(lastUploadedIOV))
             sys.exit()
 
         return newRunList
@@ -442,7 +431,8 @@ class BeamSpotWorkflow(object):
         try:
             lastUploadedIOV = self.getLastUploadedIOV(self.databaseTag)
         except:
-            self.logger.warning('This is an hack to make it work with the example files by Kevin,'\
+            self.logger.warning('This is an hack to make it work with the '\
+                                'example files by Kevin,'                  \
                                 ' lastUploadedIOV set by hand to 194000')
             lastUploadedIOV = 194000
 
@@ -480,8 +470,7 @@ class BeamSpotWorkflow(object):
         sortAndCleanBeamList(beamSpotObjList, self.fileIOVBase)
 
         if len(beamSpotObjList) == 0:
-            warning_no_valid_fit()
-
+            self.logger.warning(warning_no_valid_fit())
 
         runBased = False
         if self.dbIOVBase == 'runnumber':
@@ -491,46 +480,37 @@ class BeamSpotWorkflow(object):
                                              beamSpotObjList, runBased)
         if len(payloadList) == 0:
             self.logger.warning(warning_unable_to_create_payload())
-        
-        
+                
         if hasattr(self, 'locker'):
             self.locker.unlock()
         
 
 if __name__ == '__main__':
 
-    sourceDir             = './Runs2012B_FULL/Results/'
-    archiveDir            = './Runs2012B_FULL/Archive/'
-    workingDir            = './Runs2012B_FULL/Working/'
-    jsonFileName          = 'beamspot_payload_2012BONLY_merged_JSON_all.txt'
-    databaseTag           = 'BeamSpotObjects_2009_LumiBased_SigmaZ_v29_offline'
-    dataSet               = '/StreamExpress/Run2012B-TkAlMinBias-v1/ALCARECO'
-    fileIOVBase           = 'lumibase'
-    dbIOVBase             = 'lumiid'
-    dbsTolerance          = 200000
-    dbsTolerancePercent   = 5.
-    rrTolerance           = 200000
-    missingFilesTolerance = 200000
-    missingLumisTimeout   = 0
-    mailList              = 'manzoni@cern.ch'
-    payloadFileName       = 'PayloadFile.txt'
+    from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotWorkflowCfgObj import BeamSpotWorkflowCfg
+    
+    cfg = BeamSpotWorkflowCfg()
+    
+    cfg.sourceDir             = '../Runs2012B_FULL/Results/'
+    cfg.archiveDir            = '../Runs2012B_FULL/Archive/'
+    cfg.workingDir            = '../Runs2012B_FULL/Working/'
+    cfg.jsonFileName          = '../beamspot_payload_2012BONLY_merged_JSON_all.txt'
+    cfg.databaseTag           = 'BeamSpotObjects_2009_LumiBased_SigmaZ_v29_offline'
+    cfg.dataSet               = '/StreamExpress/Run2012B-TkAlMinBias-v1/ALCARECO'
+    cfg.fileIOVBase           = 'lumibase'
+    cfg.dbIOVBase             = 'lumiid'
+    cfg.dbsTolerance          = 200000
+    cfg.dbsTolerancePercent   = 5.
+    cfg.rrTolerance           = 200000
+    cfg.missingFilesTolerance = 200000
+    cfg.missingLumisTimeout   = 0
+    cfg.mailList              = 'manzoni@cern.ch'
+    cfg.payloadFileName       = 'PayloadFile.txt'
 
-    bswf = BeamSpotWorkflow(
-                             sourceDir             = sourceDir            ,
-                             archiveDir            = archiveDir           ,
-                             workingDir            = workingDir           ,
-                             databaseTag           = databaseTag          ,
-                             dataSet               = dataSet              ,
-                             fileIOVBase           = fileIOVBase          ,
-                             dbIOVBase             = dbIOVBase            ,
-                             dbsTolerance          = dbsTolerance         ,
-                             dbsTolerancePercent   = dbsTolerancePercent  ,
-                             rrTolerance           = rrTolerance          ,
-                             missingFilesTolerance = missingFilesTolerance,
-                             missingLumisTimeout   = missingLumisTimeout  ,
-                             jsonFileName          = jsonFileName         ,
-                             mailList              = mailList             ,
-                             payloadFileName       = payloadFileName      ,
+    bswf = BeamSpotWorkflow( 
+                            cfg       = cfg                  ,
+                            lock      = options.lock         ,
+                            overwrite = options.overwrite    ,
                            )
 
     bswf.process()
