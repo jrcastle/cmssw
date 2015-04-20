@@ -17,17 +17,7 @@ from RecoVertex.BeamSpotProducer.workflow.utils.locker           import Locker
 from RecoVertex.BeamSpotProducer.workflow.utils.readJson         import readJson
 from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands      import getListOfRunsAndLumiFromDBS, getNumberOfFilesToProcessForRun
 from RecoVertex.BeamSpotProducer.workflow.utils.compareLumiLists import compareLumiLists
-try:
-    from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi import setupDbsApi
-except:
-    print 'ERROR: you need to set a Crab environment first, in order '\
-          'to connect to DBS3'
-    shell = os.getenv('SHELL')
-    if 'csh' in shell:  
-        print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.csh'      
-    else:
-        print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.sh'      
-    exit()
+from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi      import setupDbsApi
     
     
 class BeamSpotWorkflow(object):

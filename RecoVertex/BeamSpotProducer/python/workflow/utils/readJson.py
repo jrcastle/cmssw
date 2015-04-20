@@ -23,10 +23,6 @@ def readJson(firstRun = -1, fileName = ''):
     except:
         # but can work even if you passed the full json string
         jsonList = json.loads(fileName)
-    else:
-        # none of above
-        print 'json not valid. Not a file, nor a json object (str)'
-        exit()
             
     selected_dcs = {int(k):v for k, v in jsonList.items() if int(k) >= firstRun}
     

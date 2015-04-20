@@ -1,6 +1,17 @@
 #!/usr/bin/python
 
-from dbs.apis.dbsClient import DbsApi
+try:
+    from dbs.apis.dbsClient import DbsApi
+except:
+    print 'ERROR: you need to set a Crab environment first, in order '\
+          'to connect to DBS3'
+    shell = os.getenv('SHELL')
+    if 'csh' in shell:  
+        print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.csh'      
+    else:
+        print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.sh'      
+    exit()
+
 
 def setupDbsApi(url = 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader',
                 logger = None):
