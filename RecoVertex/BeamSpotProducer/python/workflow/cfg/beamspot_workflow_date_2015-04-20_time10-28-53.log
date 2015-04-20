@@ -1,2 +1,0 @@
-[2015-04-20 10:28:53] [INFO    ] [__init__                          : L  70]: [32mInitialising a BeamSpotWorkflow class[0m 
-[2015-04-20 10:28:53] [INFO    ] [setupDbsApi                       : L  10]: [32mOpening a DBS3 instance https://cmsweb.cern.ch/dbs/prod/global/DBSReader[0m 
