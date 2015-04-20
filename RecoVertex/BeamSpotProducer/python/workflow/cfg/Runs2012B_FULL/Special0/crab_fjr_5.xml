@@ -1,0 +1,330 @@
+<FrameworkJobReport Status="Success">
+	<ExitCode Value="50117"/>
+	<InputFile>
+		<EventsRead>
+			558
+		</EventsRead>
+		<Runs>
+			{195660: [194, 195, 196, 197, 198, 199]}
+		</Runs>
+		<ModuleLabel>
+			source
+		</ModuleLabel>
+		<FileType>
+			EDM
+		</FileType>
+		<LFN>
+			/store/express/Run2012B/StreamExpress/ALCARECO/TkAlMinBias-v1/000/195/660/C4C54E95-7BB0-E111-B608-001D09F2B2CF.root
+		</LFN>
+		<PFN>
+			root://eoscms//eos/cms/store/express/Run2012B/StreamExpress/ALCARECO/TkAlMinBias-v1/000/195/660/C4C54E95-7BB0-E111-B608-001D09F2B2CF.root
+		</PFN>
+		<MergedBySize>
+			False
+		</MergedBySize>
+		<Catalog/>
+		<Checksums>
+			{}
+		</Checksums>
+		<GUID>
+			C4C54E95-7BB0-E111-B608-001D09F2B2CF
+		</GUID>
+		<State Value="closed"/>
+		<Runs>
+			<Run ID="195660">
+				<LumiSection ID="194"/>
+				<LumiSection ID="195"/>
+				<LumiSection ID="196"/>
+				<LumiSection ID="197"/>
+				<LumiSection ID="198"/>
+				<LumiSection ID="199"/>
+			</Run>
+		</Runs>
+		<Branches>
+			<Branch>
+				DcsStatuss_scalersRawToDigi__RECO.
+			</Branch>
+			<Branch>
+				L1AcceptBunchCrossings_scalersRawToDigi__RECO.
+			</Branch>
+			<Branch>
+				L1GlobalTriggerReadoutRecord_gtDigis__RECO.
+			</Branch>
+			<Branch>
+				SiPixelClusteredmNewDetSetVector_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				SiStripClusteredmNewDetSetVector_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				TrackingRecHitsOwned_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				edmTriggerResults_TriggerResults__ALCA.
+			</Branch>
+			<Branch>
+				edmTriggerResults_TriggerResults__HLT.
+			</Branch>
+			<Branch>
+				edmTriggerResults_TriggerResults__RECO.
+			</Branch>
+			<Branch>
+				recoBeamSpot_offlineBeamSpot__RECO.
+			</Branch>
+			<Branch>
+				recoTrackExtras_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				recoTracks_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				recoVertexs_offlinePrimaryVertices__RECO.
+			</Branch>
+			<Branch>
+				recoVertexs_offlinePrimaryVertices_WithBS_RECO.
+			</Branch>
+		</Branches>
+	</InputFile>
+	<InputFile>
+		<EventsRead>
+			2003
+		</EventsRead>
+		<Runs>
+			{195660: [200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219]}
+		</Runs>
+		<ModuleLabel>
+			source
+		</ModuleLabel>
+		<FileType>
+			EDM
+		</FileType>
+		<LFN>
+			/store/express/Run2012B/StreamExpress/ALCARECO/TkAlMinBias-v1/000/195/660/92432EFF-7CB0-E111-ACA2-001D09F2A690.root
+		</LFN>
+		<PFN>
+			root://eoscms//eos/cms/store/express/Run2012B/StreamExpress/ALCARECO/TkAlMinBias-v1/000/195/660/92432EFF-7CB0-E111-ACA2-001D09F2A690.root
+		</PFN>
+		<MergedBySize>
+			False
+		</MergedBySize>
+		<Catalog/>
+		<Checksums>
+			{}
+		</Checksums>
+		<GUID>
+			92432EFF-7CB0-E111-ACA2-001D09F2A690
+		</GUID>
+		<State Value="closed"/>
+		<Runs>
+			<Run ID="195660">
+				<LumiSection ID="200"/>
+				<LumiSection ID="201"/>
+				<LumiSection ID="202"/>
+				<LumiSection ID="203"/>
+				<LumiSection ID="204"/>
+				<LumiSection ID="205"/>
+				<LumiSection ID="206"/>
+				<LumiSection ID="207"/>
+				<LumiSection ID="208"/>
+				<LumiSection ID="209"/>
+				<LumiSection ID="210"/>
+				<LumiSection ID="211"/>
+				<LumiSection ID="212"/>
+				<LumiSection ID="213"/>
+				<LumiSection ID="214"/>
+				<LumiSection ID="215"/>
+				<LumiSection ID="216"/>
+				<LumiSection ID="217"/>
+				<LumiSection ID="218"/>
+				<LumiSection ID="219"/>
+			</Run>
+		</Runs>
+		<Branches>
+			<Branch>
+				DcsStatuss_scalersRawToDigi__RECO.
+			</Branch>
+			<Branch>
+				L1AcceptBunchCrossings_scalersRawToDigi__RECO.
+			</Branch>
+			<Branch>
+				L1GlobalTriggerReadoutRecord_gtDigis__RECO.
+			</Branch>
+			<Branch>
+				SiPixelClusteredmNewDetSetVector_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				SiStripClusteredmNewDetSetVector_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				TrackingRecHitsOwned_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				edmTriggerResults_TriggerResults__ALCA.
+			</Branch>
+			<Branch>
+				edmTriggerResults_TriggerResults__HLT.
+			</Branch>
+			<Branch>
+				edmTriggerResults_TriggerResults__RECO.
+			</Branch>
+			<Branch>
+				recoBeamSpot_offlineBeamSpot__RECO.
+			</Branch>
+			<Branch>
+				recoTrackExtras_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				recoTracks_ALCARECOTkAlMinBias__RECO.
+			</Branch>
+			<Branch>
+				recoVertexs_offlinePrimaryVertices__RECO.
+			</Branch>
+			<Branch>
+				recoVertexs_offlinePrimaryVertices_WithBS_RECO.
+			</Branch>
+		</Branches>
+	</InputFile>
+	<FrameworkError ExitStatus="0" Type="WrapperExitCode"/>
+	<FrameworkError ExitStatus="0" Type="ExeExitCode"/>
+	<TimingService/>
+	<ReadBranches>
+		<Branch Name="TrackingRecHitsOwned_ALCARECOTkAlMinBias__RECO." ReadCount="2561"/>
+		<Branch Name="recoTrackExtras_ALCARECOTkAlMinBias__RECO." ReadCount="2561"/>
+		<Branch Name="SiPixelClusteredmNewDetSetVector_ALCARECOTkAlMinBias__RECO." ReadCount="2560"/>
+		<Branch Name="SiStripClusteredmNewDetSetVector_ALCARECOTkAlMinBias__RECO." ReadCount="2561"/>
+		<Branch Name="recoTracks_ALCARECOTkAlMinBias__RECO." ReadCount="2561"/>
+	</ReadBranches>
+	<GeneratorInfo/>
+	<PerformanceReport>
+		<CPU/>
+		<Memory/>
+		<PerformanceSummary Metric="CrabTiming">
+			<Metric Name="ExeTime" Value="197"/>
+			<Metric Name="WrapperTime" Value="214"/>
+			<Metric Name="CpuTime" Value="&quot;178.91 14.45 98%&quot;"/>
+			<Metric Name="StageoutTime" Value="-1"/>
+		</PerformanceSummary>
+		<PerformanceSummary Metric="StorageStatistics">
+			<Metric Name="Timing-root-writev-totalMsecs" Value="0"/>
+			<Metric Name="Timing-tstoragefile-close-maxMsecs" Value="3.28192"/>
+			<Metric Name="Timing-root-position-numSuccessfulOperations" Value="3133"/>
+			<Metric Name="Timing-root-write-numOperations" Value="0"/>
+			<Metric Name="ROOT-tfile-read-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-tstoragefile-readAsync-maxMsecs" Value="0"/>
+			<Metric Name="Timing-root-prefetch-numOperations" Value="0"/>
+			<Metric Name="Timing-tstoragefile-stat-totalMsecs" Value="0.023808"/>
+			<Metric Name="Timing-tstoragefile-stat-numSuccessfulOperations" Value="4"/>
+			<Metric Name="Timing-tstoragefile-readActual-totalMegabytes" Value="67.276"/>
+			<Metric Name="Timing-root-position-minMsecs" Value="0"/>
+			<Metric Name="Timing-root-position-maxMsecs" Value="0.007168"/>
+			<Metric Name="Timing-root-close-minMsecs" Value="2.90893"/>
+			<Metric Name="Timing-root-construct-numOperations" Value="2"/>
+			<Metric Name="Timing-tstoragefile-read-numOperations" Value="3117"/>
+			<Metric Name="Timing-root-read-maxMsecs" Value="13.6929"/>
+			<Metric Name="Timing-tstoragefile-close-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-root-prefetch-totalMsecs" Value="0"/>
+			<Metric Name="Timing-root-destruct-numSuccessfulOperations" Value="2"/>
+			<Metric Name="Timing-root-readv-totalMsecs" Value="1411.11"/>
+			<Metric Name="Timing-root-destruct-minMsecs" Value="0.002048"/>
+			<Metric Name="Timing-root-write-maxMsecs" Value="0"/>
+			<Metric Name="Timing-root-readv-numSuccessfulOperations" Value="19"/>
+			<Metric Name="Timing-root-close-totalMegabytes" Value="0"/>
+			<Metric Name="Parameter-untracked-bool-enabled" Value="true"/>
+			<Metric Name="Timing-tstoragefile-construct-totalMsecs" Value="419.253"/>
+			<Metric Name="Timing-root-write-totalMsecs" Value="0"/>
+			<Metric Name="Timing-tstoragefile-seek-numOperations" Value="3117"/>
+			<Metric Name="Timing-tstoragefile-readActual-totalMsecs" Value="1482.15"/>
+			<Metric Name="Parameter-untracked-string-readHint" Value="auto-detect"/>
+			<Metric Name="Timing-root-prefetch-maxMsecs" Value="0"/>
+			<Metric Name="Timing-root-readv-totalMegabytes" Value="67.1566"/>
+			<Metric Name="Timing-root-read-numSuccessfulOperations" Value="36"/>
+			<Metric Name="Timing-tstoragefile-read-maxMsecs" Value="300.238"/>
+			<Metric Name="Timing-tstoragefile-readAsync-numSuccessfulOperations" Value="0"/>
+			<Metric Name="Timing-tstoragefile-seek-totalMsecs" Value="5.0327"/>
+			<Metric Name="Timing-tstoragefile-readAsync-numOperations" Value="10"/>
+			<Metric Name="Timing-tstoragefile-readViaCache-minMsecs" Value="0"/>
+			<Metric Name="Timing-root-writev-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-root-stagein-numOperations" Value="2"/>
+			<Metric Name="Timing-root-stagein-maxMsecs" Value="140.913"/>
+			<Metric Name="Timing-root-read-numOperations" Value="36"/>
+			<Metric Name="Timing-root-position-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-tstoragefile-construct-numSuccessfulOperations" Value="2"/>
+			<Metric Name="Timing-tstoragefile-seek-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-root-close-numSuccessfulOperations" Value="2"/>
+			<Metric Name="Timing-root-prefetch-numSuccessfulOperations" Value="0"/>
+			<Metric Name="Timing-root-writev-minMsecs" Value="0"/>
+			<Metric Name="Timing-root-open-totalMsecs" Value="86.9181"/>
+			<Metric Name="Timing-tstoragefile-stat-numOperations" Value="4"/>
+			<Metric Name="Timing-root-stagein-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-tstoragefile-readViaCache-totalMegabytes" Value="65.2968"/>
+			<Metric Name="Timing-root-stagein-minMsecs" Value="3.51309"/>
+			<Metric Name="Timing-tstoragefile-seek-numSuccessfulOperations" Value="3117"/>
+			<Metric Name="Timing-tstoragefile-stat-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-tstoragefile-close-totalMsecs" Value="6.20186"/>
+			<Metric Name="Timing-root-close-numOperations" Value="2"/>
+			<Metric Name="Timing-tstoragefile-readActual-numOperations" Value="55"/>
+			<Metric Name="Timing-root-construct-totalMsecs" Value="0.006912"/>
+			<Metric Name="Timing-root-open-numSuccessfulOperations" Value="2"/>
+			<Metric Name="Timing-root-prefetch-minMsecs" Value="0"/>
+			<Metric Name="Timing-root-write-numSuccessfulOperations" Value="0"/>
+			<Metric Name="Timing-tstoragefile-readAsync-totalMegabytes" Value="0"/>
+			<Metric Name="Parameter-untracked-string-cacheHint" Value="application-only"/>
+			<Metric Name="Timing-tstoragefile-construct-maxMsecs" Value="341.291"/>
+			<Metric Name="Timing-root-read-totalMsecs" Value="70.9215"/>
+			<Metric Name="Timing-root-construct-numSuccessfulOperations" Value="2"/>
+			<Metric Name="Timing-tstoragefile-close-numOperations" Value="2"/>
+			<Metric Name="Timing-tstoragefile-readAsync-minMsecs" Value="0"/>
+			<Metric Name="Timing-root-writev-maxMsecs" Value="0"/>
+			<Metric Name="Timing-tstoragefile-read-totalMsecs" Value="1531.77"/>
+			<Metric Name="Timing-root-readv-minMsecs" Value="0.418816"/>
+			<Metric Name="ROOT-tfile-write-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-tstoragefile-readActual-maxMsecs" Value="251.816"/>
+			<Metric Name="Timing-root-construct-maxMsecs" Value="0.004864"/>
+			<Metric Name="Timing-tstoragefile-construct-numOperations" Value="2"/>
+			<Metric Name="Parameter-untracked-bool-stats" Value="true"/>
+			<Metric Name="Timing-root-construct-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-root-stagein-totalMsecs" Value="144.426"/>
+			<Metric Name="Timing-root-close-totalMsecs" Value="6.08205"/>
+			<Metric Name="Timing-tstoragefile-stat-maxMsecs" Value="0.009984"/>
+			<Metric Name="Timing-root-destruct-numOperations" Value="2"/>
+			<Metric Name="Timing-root-readv-numOperations" Value="19"/>
+			<Metric Name="Timing-root-destruct-totalMsecs" Value="0.075008"/>
+			<Metric Name="Timing-tstoragefile-readActual-numSuccessfulOperations" Value="55"/>
+			<Metric Name="Timing-tstoragefile-construct-minMsecs" Value="77.962"/>
+			<Metric Name="Timing-root-open-maxMsecs" Value="45.7641"/>
+			<Metric Name="Timing-root-write-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-tstoragefile-stat-minMsecs" Value="0.00384"/>
+			<Metric Name="Timing-root-construct-minMsecs" Value="0.002048"/>
+			<Metric Name="Timing-root-close-maxMsecs" Value="3.17312"/>
+			<Metric Name="Timing-root-readv-maxMsecs" Value="251.814"/>
+			<Metric Name="Timing-tstoragefile-read-totalMegabytes" Value="65.4162"/>
+			<Metric Name="Timing-tstoragefile-readAsync-totalMsecs" Value="0"/>
+			<Metric Name="Timing-tstoragefile-close-numSuccessfulOperations" Value="2"/>
+			<Metric Name="Timing-tstoragefile-close-minMsecs" Value="2.91994"/>
+			<Metric Name="Timing-tstoragefile-read-minMsecs" Value="0.000768"/>
+			<Metric Name="Timing-root-writev-numOperations" Value="0"/>
+			<Metric Name="Timing-tstoragefile-seek-minMsecs" Value="0.000768"/>
+			<Metric Name="Timing-root-prefetch-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-tstoragefile-readViaCache-numSuccessfulOperations" Value="3081"/>
+			<Metric Name="Timing-root-open-numOperations" Value="2"/>
+			<Metric Name="Timing-tstoragefile-readViaCache-totalMsecs" Value="1458.38"/>
+			<Metric Name="Timing-tstoragefile-readViaCache-numOperations" Value="3081"/>
+			<Metric Name="Timing-tstoragefile-readViaCache-maxMsecs" Value="300.237"/>
+			<Metric Name="Timing-root-stagein-numSuccessfulOperations" Value="2"/>
+			<Metric Name="Timing-tstoragefile-read-numSuccessfulOperations" Value="3117"/>
+			<Metric Name="Timing-root-open-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-root-writev-numSuccessfulOperations" Value="0"/>
+			<Metric Name="Timing-root-destruct-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-root-destruct-maxMsecs" Value="0.07296"/>
+			<Metric Name="Timing-root-write-minMsecs" Value="0"/>
+			<Metric Name="Timing-tstoragefile-construct-totalMegabytes" Value="0"/>
+			<Metric Name="Timing-root-position-numOperations" Value="3133"/>
+			<Metric Name="Timing-root-position-totalMsecs" Value="1.60845"/>
+			<Metric Name="Timing-root-open-minMsecs" Value="41.154"/>
+			<Metric Name="Timing-root-read-minMsecs" Value="0.00512"/>
+			<Metric Name="Timing-tstoragefile-seek-maxMsecs" Value="0.011008"/>
+			<Metric Name="Timing-tstoragefile-readActual-minMsecs" Value="0.005888"/>
+			<Metric Name="Timing-root-read-totalMegabytes" Value="0.119363"/>
+		</PerformanceSummary>
+	</PerformanceReport>
+</FrameworkJobReport>

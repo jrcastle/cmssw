@@ -18,7 +18,10 @@ def initLogger(filename          = 'beamspot_workflow.log',
                file_level        = 'info',
                stream_level      = 'info',
                email_level       = 'critical'):
-
+    
+    '''
+    Initiates a Logger
+    '''
 
     levels = {'debug'   : DEBUG   ,
               'info'    : INFO    ,

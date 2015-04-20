@@ -1,0 +1,25 @@
+[2015-04-20 11:24:28] [INFO    ] [__init__                          : L  56]: [32mInitialising a BeamSpotWorkflow class[0m 
+[2015-04-20 11:24:28] [INFO    ] [setupDbsApi                       : L  10]: [32mOpening a DBS3 instance https://cmsweb.cern.ch/dbs/prod/global/DBSReader[0m 
+[2015-04-20 11:24:31] [INFO    ] [_setupDirectories                 : L 101]: [32mSetting up the directory structure[0m 
+[2015-04-20 11:24:31] [INFO    ] [process                           : L 410]: [32mBegin process[0m 
+[2015-04-20 11:24:31] [INFO    ] [getLastUploadedIOV                : L 127]: [32mGetting last IOV for tag: BeamSpotObjects_2009_LumiBased_SigmaZ_v29_offline[0m 
+[2015-04-20 11:24:31] [WARNING ] [process                           : L 418]: [33mThis is an hack to make it work with the example files by Kevin, lastUploadedIOV set by hand to 194000[0m 
+[2015-04-20 11:24:31] [INFO    ] [getNewFileList                    : L 159]: [32mGetting list of files processed after IOV 194000:[0m 
+[2015-04-20 11:24:31] [INFO    ] [getNewFileList                    : L 165]: [32m	XRepFinal_1_195660_1.txt run: 195660[0m 
+[2015-04-20 11:24:31] [INFO    ] [getNewFileList                    : L 165]: [32m	XRepFinal_2_195660_1.txt run: 195660[0m 
+[2015-04-20 11:24:31] [INFO    ] [getNewFileList                    : L 165]: [32m	XRepFinal_3_195660_1.txt run: 195660[0m 
+[2015-04-20 11:24:31] [INFO    ] [getNewFileList                    : L 165]: [32m	XRepFinal_4_195660_1.txt run: 195660[0m 
+[2015-04-20 11:24:31] [INFO    ] [getNewFileList                    : L 165]: [32m	XRepFinal_5_195660_1.txt run: 195660[0m 
+[2015-04-20 11:24:31] [INFO    ] [getNewFileList                    : L 165]: [32m	XRepFinal_6_195660_1.txt run: 195660[0m 
+[2015-04-20 11:24:31] [INFO    ] [cyclicCp                          : L  64]: [32mCopying files from ../Runs2012B_FULL/Results/ to ../Runs2012B_FULL/Archive/[0m 
+[2015-04-20 11:24:31] [INFO    ] [cyclicCp                          : L  67]: [32m	|___ Attempt 1[0m 
+[2015-04-20 11:24:31] [INFO    ] [cp                                : L  37]: [32m		File XRepFinal_1_195660_1.txt already exists in destination directory. We will Keep original file.[0m 
+[2015-04-20 11:24:31] [INFO    ] [cp                                : L  37]: [32m		File XRepFinal_2_195660_1.txt already exists in destination directory. We will Keep original file.[0m 
+[2015-04-20 11:24:31] [INFO    ] [cp                                : L  37]: [32m		File XRepFinal_3_195660_1.txt already exists in destination directory. We will Keep original file.[0m 
+[2015-04-20 11:24:31] [INFO    ] [cp                                : L  37]: [32m		File XRepFinal_4_195660_1.txt already exists in destination directory. We will Keep original file.[0m 
+[2015-04-20 11:24:31] [INFO    ] [cp                                : L  37]: [32m		File XRepFinal_5_195660_1.txt already exists in destination directory. We will Keep original file.[0m 
+[2015-04-20 11:24:31] [INFO    ] [cp                                : L  37]: [32m		File XRepFinal_6_195660_1.txt already exists in destination directory. We will Keep original file.[0m 
+[2015-04-20 11:24:31] [INFO    ] [cyclicCp                          : L  70]: [32m		|___ 6/6 files copied or already existing[0m 
+[2015-04-20 11:24:31] [INFO    ] [getListOfRunsAndLumiFromDBS       : L 183]: [32mGetting list of runs and lumis from DBS[0m 
+[2015-04-20 11:24:31] [INFO    ] [getListOfRunsAndLumiFromDBS       : L 185]: [32mGetting list of files from DBS for the /StreamExpress/Run2012B-TkAlMinBias-v1/ALCARECO dataset. From this list we will query for the run and lumisections[0m 
+[2015-04-20 11:26:57] [INFO    ] [process                           : L 434]: [32mGetting list of runs >=194000 and lumis from Json ../beamspot_payload_2012BONLY_merged_JSON_all.txt[0m 

@@ -42,7 +42,7 @@ class BeamSpotWorkflowCfg(object):
         pass
         
     def Print(self):
-        maxSpacing = len(max(vars(self).keys()))  
+        maxSpacing = len(max(vars(self).keys(), key=len))
         for k, v in vars(self).items():
             myKstr = '{K}'.format(K=k).ljust(maxSpacing)
             myVstr = '= {V}'.format(V=v)

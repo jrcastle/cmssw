@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from dbs.apis.dbsClient import DbsApi
 
 def setupDbsApi(url = 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader',
@@ -11,3 +13,7 @@ def setupDbsApi(url = 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader',
     else     : print 'Opening a DBS3 instance %s' %url
     api = DbsApi(url = url)
     return api
+
+if __name__ == '__main__':
+    print 'connected to DBS3'
+    api = setupDbsApi()

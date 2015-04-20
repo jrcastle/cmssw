@@ -8,33 +8,26 @@ import RecoVertex.BeamSpotProducer.workflow.utils.colorer
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import ls, readBeamSpotFile, sortAndCleanBeamList, timeoutManager, createWeightedPayloads
 
-from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_crab, error_lumi_range, error_run_not_in_DBS, error_timeout
-from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_out_of_tolerance, error_run_not_in_rr, error_missing_large_run
-from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_source_dir, error_failed_copy, error_failed_copy_dirs, error_sql_write_failed 
-from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import error_iov_not_implemented, error_iov_unrecognised, error_tag_exist_last_iov_doesnt, error_cant_connect_db
-from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import warning_missing_small_run, warning_no_valid_fit, warning_unable_to_create_payload 
-from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import warning_setting_dbs_mismatch_timeout, warning_dbs_mismatch_timeout_progress
-
-# from RecoVertex.BeamSpotProducer.workflow.utils.initCrab      import initCrab
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import *
 from RecoVertex.BeamSpotProducer.workflow.utils.initLogger    import initLogger
 from RecoVertex.BeamSpotProducer.workflow.utils.smartCopy     import cyclicCp
-from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi   import setupDbsApi
 from RecoVertex.BeamSpotProducer.workflow.utils.locker        import Locker
+from RecoVertex.BeamSpotProducer.workflow.utils.readJson      import readJson
+from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands   import getListOfRunsAndLumiFromDBS
 
-# RIC cannot make it work, as the environment variables set in 
-# a subprocess don't outlive the subprocess itself
-# initCrab() 
-
-if sys.version_info < (2,6,0):
-    print 'Python interpreter version < 2.6.0'
-    print 'importing json'
-    import json
-else:
-    print 'Python interpreter version >= 2.6.0'
-    print 'importing simplejson as json'
-    import simplejson as json
-
-
+try:
+    from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi import setupDbsApi
+except:
+    print 'ERROR: you need to set a Crab environment first, in order '\
+          'to connect to DBS3'
+    shell = os.getenv('SHELL')
+    if 'csh' in shell:  
+        print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.csh'      
+    else:
+        print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.sh'      
+    exit()
+    
+    
 class BeamSpotWorkflow(object):
     '''
     FIXME! docstring to be written
@@ -52,11 +45,11 @@ class BeamSpotWorkflow(object):
                                  formatter_options = '%Y-%m-%d %H:%M:%S'    ,
                                  emails            = cfg.mailList           ,
                                  file_level        = 'info'                 ,
-                                 stream_level      = 'info'                 ,
+                                 stream_level      = 'debug'                 ,
                                  email_level       = 'critical'             )
         
         self.logger.info('Initialising a BeamSpotWorkflow class')
-
+        
         self.api = setupDbsApi(logger = self.logger)
 
         self.sourceDir             = cfg.sourceDir
@@ -78,7 +71,6 @@ class BeamSpotWorkflow(object):
         if lock: 
             self._checkIfAlreadyRunning()
         self._setupDirectories()
-
 
     def _checkIfAlreadyRunning(self):
         '''
@@ -122,7 +114,7 @@ class BeamSpotWorkflow(object):
         else:
             os.system('rm -f {WORKDIR}*'.format(WORKDIR = self.workingDir))
 
-    def getLastUploadedIOV(self, tagName):
+    def getLastUploadedIOV(self):
         '''
         This function gets the last uploaded IOV from the conditional DB
         to make sure we are not re-running on already considered runs
@@ -130,6 +122,7 @@ class BeamSpotWorkflow(object):
         self.logger.info('Getting last IOV for tag: ' + self.databaseTag)
         listIOVCommand = 'conddb --nocolor list {TAGNAME} -L 2000000000000'.format(TAGNAME = self.tagName)
         dbError = commands.getstatusoutput( listIOVCommand )
+        self.logger.debug(dbError)
         if dbError[0] != 0 :
             if 'metadata entry {TAGNAME} does not exist'.format(TAGNAME= self.tagName) in dbError[1]:
                 self.logger.warning('Creating a new tag because I got the following '\
@@ -142,7 +135,7 @@ class BeamSpotWorkflow(object):
         output = commands.getstatusoutput( aCommand )
         #WARNING when we pass to lumi IOV this should be long long
         if output[1] == '':
-          self.logger.error(error_tag_exist_last_iov_doesnt(tagName, emails = []))
+          self.logger.error(error_tag_exist_last_iov_doesnt(self.tagName, emails = []))
         goodoutput =  output[1].split('\n')[1]
         self.logger.info('Last IOV from DB = %d' %int(goodoutput))
         return long(goodoutput)
@@ -152,20 +145,6 @@ class BeamSpotWorkflow(object):
         if not regExp:
             return -1
         return long(regExp.group(3))
-
-    def getListOfRunsAndLumiFromFile(self, firstRun = -1, fileName = ''):
-        
-        self.logger.info('Getting list of runs and lumis from Json %s' %fileName)
-
-        file = open(fileName)
-        jsonFile = file.read()
-        file.close()
-        jsonList = json.loads(jsonFile)
-
-        selected_dcs = {}
-        for element in jsonList:
-            selected_dcs[long(element)] = jsonList[element]
-        return selected_dcs
 
     def getNewFileList(self, fromDir, lastUploadedIOV):
         '''This function takes the list of files already processed and checks if
@@ -188,30 +167,6 @@ class BeamSpotWorkflow(object):
             sys.exit()
 
         return newRunList
-
-    def getListOfRunsAndLumiFromDBS(self, dataSet, lastRun=-1):
-        '''
-        FIXME!
-        '''
-        datasetList    = dataSet.split(',')
-        outputFileList = []
-        runsAndLumis   = {}
-        self.logger.info('Getting list of runs and lumis from DBS')
-        for data in datasetList:
-            self.logger.info('Getting list of files from DBS for the %s dataset. From this list we will query for the run and lumisections' %str(data))
-            output_files = self.api.listFiles(dataset=str(data))
-            for myfile in output_files:
-                output = self.api.listFileLumis(logical_file_name=str(myfile['logical_file_name']))
-                run = long(output[0]['run_num'])
-                if run < lastRun: continue
-                if not run in runsAndLumis:
-                    runsAndLumis[run] = []
-                for lumi in output[0]['lumi_section_num']:
-                    runsAndLumis[run].append(long(lumi))
-        if len(runsAndLumis) == 0:
-           self.logger.error('There are no new runs or lumis in DBS to process, exiting.')
-           exit()
-        return runsAndLumis
 
     def getNumberOfFilesToProcessForRun(self, dataSet, run):
         queryCommand = "dbs --search --query \"find file where dataset=" + dataSet + " and run = " + str(run) + "\" | grep .root"
@@ -254,29 +209,29 @@ class BeamSpotWorkflow(object):
         runsAndFiles          = {}
         for fileName in newRunList:
             file = open(runListDir+fileName)
-        for line in file:
-            if 'Runnumber' in line:
-                run = long(line.rstrip().split()[1])
-            elif 'LumiRange' in line:
-                lumiLine = line.rstrip().split()
-                begLumi  = long(lumiLine[1])
-                endLumi  = long(lumiLine[3])
-                if begLumi != endLumi:
-                    self.logger.error(error_lumi_range(run, line, runListDir, fileName))
-                else:
-                    if not run in runsAndLumisProcessed:
-                        runsAndLumisProcessed[run] = []
-                    if begLumi in runsAndLumisProcessed[run]:
-                        self.logger.error('Lumi {BEGLUMI} in event {RUN} already exist. '\
-                                          'This MUST not happen but right now           '\
-                                          'I will ignore this lumi!'.format(BEGLUMI = str(begLumi),
-                                                                            RUN     = str(run)    ))
+            for line in file:
+                if 'Runnumber' in line:
+                    run = long(line.rstrip().split()[1])
+                elif 'LumiRange' in line:
+                    lumiLine = line.rstrip().split()
+                    begLumi  = long(lumiLine[1])
+                    endLumi  = long(lumiLine[3])
+                    if begLumi != endLumi:
+                        self.logger.error(error_lumi_range(run, line, runListDir, fileName))
                     else:
-                        runsAndLumisProcessed[run].append(begLumi)
-        if not run in runsAndFiles:
-            runsAndFiles[run] = []
-        runsAndFiles[run].append(fileName)
-        file.close()
+                        if not run in runsAndLumisProcessed:
+                            runsAndLumisProcessed[run] = []
+                        if begLumi in runsAndLumisProcessed[run]:
+                            self.logger.error('Lumi {BEGLUMI} in event {RUN} already exist. '\
+                                              'This MUST not happen but right now           '\
+                                              'I will ignore this lumi!'.format(BEGLUMI = str(begLumi),
+                                                                                RUN     = str(run)    ))
+                        else:
+                            runsAndLumisProcessed[run].append(begLumi)
+            if not run in runsAndFiles:
+                runsAndFiles[run] = []
+            runsAndFiles[run].append(fileName)
+            file.close()
 
         rrKeys = listOfRunsAndLumiFromRR.keys()
         rrKeys.sort()
@@ -420,7 +375,7 @@ class BeamSpotWorkflow(object):
     def process(self):
         
         '''
-        FIXME!
+        FIXME! Write the DOC
         '''
         
         self.logger.info('Begin process')
@@ -429,36 +384,56 @@ class BeamSpotWorkflow(object):
         #FIXME: That's an hack to make it work with the example files
         #       by Kevin, need to remove the following line in normal operations
         try:
-            lastUploadedIOV = self.getLastUploadedIOV(self.databaseTag)
+            lastUploadedIOV = self.getLastUploadedIOV()
         except:
             self.logger.warning('This is an hack to make it work with the '\
-                                'example files by Kevin,'                  \
-                                ' lastUploadedIOV set by hand to 194000')
+                                'example files by Kevin, '                 \
+                                'lastUploadedIOV set by hand to 194000')
             lastUploadedIOV = 194000
 
         ######### Get list of files processed after the last IOV
-        newProcessedFileList = self.getNewFileList(self.sourceDir, lastUploadedIOV)
+        newProcessedFileList = self.getNewFileList(self.sourceDir , 
+                                                   lastUploadedIOV)
 
         ######### Copy files to archive directory
-        copiedFiles = cyclicCp(self.sourceDir, self.archiveDir, 
-                               newProcessedFileList, logger = self.logger)
+        copiedFiles = cyclicCp(self.sourceDir      , 
+                               self.archiveDir     , 
+                               newProcessedFileList, 
+                               logger = self.logger)
         
         ######### Get from DBS the list of Runs and lumis last IOV
-        listOfRunsAndLumiFromDBS  = self.getListOfRunsAndLumiFromDBS(self.dataSet, lastUploadedIOV)
-        listOfRunsAndLumiFromJson = self.getListOfRunsAndLumiFromFile(lastUploadedIOV, self.jsonFileName)
+        listOfRunsAndLumiFromDBS = getListOfRunsAndLumiFromDBS(self.api       ,
+                                                               self.dataSet   , 
+                                                               lastUploadedIOV,
+                                                               self.logger    )
+
+        self.logger.info('Getting list of runs >=%s and lumis from Json %s' \
+                         %(lastUploadedIOV, self.jsonFileName))
+                         
+        listOfRunsAndLumiFromJson = readJson(lastUploadedIOV  , 
+                                             self.jsonFileName)
+
+
+        import pdb ; pdb.set_trace()
 
         ######### Get list of files to process for DB
+        # Possibly we just want to do a diff between the two jsons...
+        # https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile?redirectedfrom=CMS.SWGuideGoodLumiSectionsJSONFile#How_to_compare_Good_Luminosity_f
         self.logger.info('Getting list of files to process')
+        
         selectedFilesToProcess = self.selectFilesToProcess(listOfRunsAndLumiFromDBS ,
                                                            listOfRunsAndLumiFromJson,
                                                            copiedFiles              ,
                                                            self.archiveDir          )
         if len(selectedFilesToProcess) == 0:
-           exit('There are no files to process')
-
+           self.logger.error('There are no files to process')
+           exit()
+           
         ######### Copy files to working directory
-        copiedFiles = cyclicCp(self.archiveDir, self.workingDir, 
-                               selectedFilesToProcess, logger = self.logger)
+        copiedFiles = cyclicCp(self.archiveDir       , 
+                               self.workingDir       , 
+                               selectedFilesToProcess, 
+                               logger = self.logger  )
 
         self.logger.info('Sorting and cleaning beamlist')
         beamSpotObjList = []
