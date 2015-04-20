@@ -1,20 +1,22 @@
 import commands
+import glob
 import os
 import re
 import sys
 
 import RecoVertex.BeamSpotProducer.workflow.utils.colorer
 
-from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
-from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods import ls, readBeamSpotFile, sortAndCleanBeamList, timeoutManager, createWeightedPayloads
+from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj    import BeamSpot
+from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods    import ls, readBeamSpotFile, sortAndCleanBeamList
+from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods    import timeoutManager, createWeightedPayloads 
 
-from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import *
-from RecoVertex.BeamSpotProducer.workflow.utils.initLogger    import initLogger
-from RecoVertex.BeamSpotProducer.workflow.utils.smartCopy     import cyclicCp
-from RecoVertex.BeamSpotProducer.workflow.utils.locker        import Locker
-from RecoVertex.BeamSpotProducer.workflow.utils.readJson      import readJson
-from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands   import getListOfRunsAndLumiFromDBS
-
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages    import *
+from RecoVertex.BeamSpotProducer.workflow.utils.initLogger       import initLogger
+from RecoVertex.BeamSpotProducer.workflow.utils.smartCopy        import cyclicCp
+from RecoVertex.BeamSpotProducer.workflow.utils.locker           import Locker
+from RecoVertex.BeamSpotProducer.workflow.utils.readJson         import readJson
+from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands      import getListOfRunsAndLumiFromDBS, getNumberOfFilesToProcessForRun
+from RecoVertex.BeamSpotProducer.workflow.utils.compareLumiLists import compareLumiLists
 try:
     from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi import setupDbsApi
 except:
@@ -70,12 +72,13 @@ class BeamSpotWorkflow(object):
         
         if lock: 
             self._checkIfAlreadyRunning()
+        
         self._setupDirectories()
 
     def _checkIfAlreadyRunning(self):
         '''
         Check whether there's another BeamSpotWorkflow
-        running
+        running, by assessing the existence of locker.lock file
         '''
         self.logger.info('Check whether another script is running')        
         
@@ -91,7 +94,6 @@ class BeamSpotWorkflow(object):
     def _setupDirectories(self):
         '''
         Directory setup
-        FIX THE DOC
         '''
         self.logger.info('Setting up the directory structure')        
         # check that the relevant directories end with a '/'
@@ -114,6 +116,78 @@ class BeamSpotWorkflow(object):
         else:
             os.system('rm -f {WORKDIR}*'.format(WORKDIR = self.workingDir))
 
+    def _associateRunsLumisAndFiles(self, newRunList, runListDir):
+        '''
+        Parses the txt files produced by the crab jobs and returns a dictionary
+        where each run (inferred from the file names) is associated to its 
+        lumi sections that got processed and the absolute path to its files.
+        '''
+                
+        runs = set([re.findall(r'\d+', fileName)[1] for fileName in newRunList]) 
+
+        runsFilesLumis = {run:{'files':[], 'lumis':[]} for run in runs}
+        
+        for run in runs:
+            
+            filesForRun = glob.glob('/'.join([runListDir, '*' + run + '*.txt']))
+            runsFilesLumis[run]['files'] = filesForRun
+            
+            for fileName in filesForRun:
+                
+                file = open(fileName) 
+                
+                for line in file:
+                    if 'LumiRange' in line:
+                        lumiLine = line.rstrip().split()
+                        begLumi  = lumiLine[1]
+                        endLumi  = lumiLine[3]
+                        if begLumi != endLumi:
+                            self.logger.error(error_lumi_range(run       , 
+                                                               line      , 
+                                                               runListDir, 
+                                                               fileName  ))
+                        else:
+                            if begLumi not in runsFilesLumis[run]['lumis']:
+                                runsFilesLumis[run]['lumis'].append(begLumi)                                        
+                            else:
+                                self.logger.error(error_lumi_in_run(begLumi, 
+                                                                    run    ))
+                file.close()
+        
+        return runsFilesLumis
+
+    def _checkProcessedFiles(self, run, runsAndFiles, nFiles, filesToProcess):
+    
+        if len(runsAndFiles[run]) < nFiles:
+    
+            self.logger.warning(warning_not_all_file_yet(run         , 
+                                                         runsAndFiles, 
+                                                         nFiles      ))
+    
+            if nFiles - len(runsAndFiles[run]) <= self.missingFilesTolerance:
+                timeoutManager('DBS_VERY_BIG_MISMATCH_Run'+str(run)) # resetting this timeout
+                timeoutType = timeoutManager('DBS_MISMATCH_Run'+str(run), self.missingLumisTimeout)
+                if timeoutType == 1:
+                    self.logger.error(error_timeout())
+                else:
+                    if timeoutType == -1: self.logger.warning(warning_setting_dbs_mismatch_timeout(run) )
+                    else                : self.logger.warning(warning_dbs_mismatch_timeout_progress(run))
+                    return filesToProcess
+            else:
+                timeoutType = timeoutManager('DBS_VERY_BIG_MISMATCH_Run'+str(run), self.missingLumisTimeout)
+                if timeoutType == 1:
+                    self.logger.error(error_timeout(runsAndFiles, self.missingLumisTimeout, run))
+                    return filesToProcess
+                else:
+                    if timeoutType == -1: self.logger.warning(warning_dbs_mismatch_setting_timeout(run))
+                    else                : self.logger.warning(warning_dbs_mismatch_timeout(run)        )
+                    return filesToProcess
+        else:
+            timeoutManager('DBS_VERY_BIG_MISMATCH_Run'+ str(run))
+            timeoutManager('DBS_MISMATCH_Run'         + str(run))
+
+        return filesToProcess
+       
     def getLastUploadedIOV(self):
         '''
         This function gets the last uploaded IOV from the conditional DB
@@ -168,126 +242,82 @@ class BeamSpotWorkflow(object):
 
         return newRunList
 
-    def getNumberOfFilesToProcessForRun(self, dataSet, run):
-        queryCommand = "dbs --search --query \"find file where dataset=" + dataSet + " and run = " + str(run) + "\" | grep .root"
-        output = commands.getstatusoutput( queryCommand )
-        if output[0] != 0:
-            return 0
-        else:
-            return len(output[1].split('\n'))
-
-    def compareLumiLists(self, listA, listB, errors=[], tolerance=0):
-        lenA = len(listA)
-        lenB = len(listB)
-        if lenA < lenB-(lenB*float(tolerance)/100):
-            errors.append('ERROR: The number of lumi sections is different: listA(' + str(lenA) + ')!=(' + str(lenB) + ')listB')
-        #else:
-            #errors.append('Lumi check ok!listA(' + str(lenA) + ')-(' + str(lenB) + ')listB')
-        #print errors
-        listA.sort()
-        listB.sort()
-        badA = []
-        badB = []
-        for lumi in listA:
-            if not lumi in listB:
-                errors.append('Lumi (' + str(lumi) + ') is in listA but not in listB')
-                badB.append(lumi)
-        for lumi in listB:
-            if not lumi in listA:
-                errors.append('Lumi (' + str(lumi) + ') is in listB but not in listA')
-                badA.append(lumi)
-
-        return badA, badB
-
     def selectFilesToProcess(self                    ,
                              listOfRunsAndLumiFromDBS,
                              listOfRunsAndLumiFromRR ,
                              newRunList              ,
                              runListDir              ):
+        '''
+        FIXME!
+        Need some decent doc here! 
+        '''
 
-        runsAndLumisProcessed = {}
-        runsAndFiles          = {}
-        for fileName in newRunList:
-            file = open(runListDir+fileName)
-            for line in file:
-                if 'Runnumber' in line:
-                    run = long(line.rstrip().split()[1])
-                elif 'LumiRange' in line:
-                    lumiLine = line.rstrip().split()
-                    begLumi  = long(lumiLine[1])
-                    endLumi  = long(lumiLine[3])
-                    if begLumi != endLumi:
-                        self.logger.error(error_lumi_range(run, line, runListDir, fileName))
-                    else:
-                        if not run in runsAndLumisProcessed:
-                            runsAndLumisProcessed[run] = []
-                        if begLumi in runsAndLumisProcessed[run]:
-                            self.logger.error('Lumi {BEGLUMI} in event {RUN} already exist. '\
-                                              'This MUST not happen but right now           '\
-                                              'I will ignore this lumi!'.format(BEGLUMI = str(begLumi),
-                                                                                RUN     = str(run)    ))
-                        else:
-                            runsAndLumisProcessed[run].append(begLumi)
-            if not run in runsAndFiles:
-                runsAndFiles[run] = []
-            runsAndFiles[run].append(fileName)
-            file.close()
+        runsFilesLumis = self._associateRunsLumisAndFiles(newRunList, runListDir)
 
-        rrKeys = listOfRunsAndLumiFromRR.keys()
-        rrKeys.sort()
-        dbsKeys = listOfRunsAndLumiFromDBS.keys()
-        dbsKeys.sort();
-        #I remove the last entry from DBS since I am not sure it is an already closed run!
-        lastUnclosedRun = dbsKeys.pop()
-        self.logger.info('Last unclosed run: ' + str(lastUnclosedRun))
-        procKeys = runsAndLumisProcessed.keys()
-        procKeys.sort()
+        runsAndFiles          = {k : v['files'] for k, v in runsFilesLumis.items()}
+        runsAndLumisProcessed = {k : v['lumis'] for k, v in runsFilesLumis.items()}
+        
+        self.logger.info('test') ; import pdb ; pdb.set_trace()
+
+        # list of runs in RunRegistry
+        rrKeys   = sorted(listOfRunsAndLumiFromRR .keys())
+        # list of runs in DBS for the given DS 
+        dbsKeys  = sorted(listOfRunsAndLumiFromDBS.keys())
+        # list of runs on which the offline BS reconstruction has been run 
+        procKeys = sorted(runsFilesLumis          .keys())
+
+        self.logger.info('test') ; import pdb ; pdb.set_trace()
+        
+        # I remove the last entry from DBS since 
+        # I am not sure it is an already closed run!
+        lastUnclosedRun = max(dbsKeys)
+        self.logger.info('Last unclosed run: %s' %str(lastUnclosedRun))
+
         filesToProcess = []
-        for run in rrKeys:
+        self.logger.info('test') ; import pdb ; pdb.set_trace()
+
+        # check that all the runs in runs where the BS fit has been run 
+        # are also in DBS
+        runToProcess = [run for run in procKeys if (int(run) in dbsKeys and 
+                                                    int(run) < lastUnclosedRun)]
+
+        self.logger.info('test') ; import pdb ; pdb.set_trace()
+        
+        # raise an error if there are runs in RR but not in DBS
+        for run in set(procKeys) - set(dbsKeys):
+            if run > lastUnclosedRun: continue
+            self.logger.error(error_run_not_in_DBS(run))
+
+        self.logger.info('test') ; import pdb ; pdb.set_trace()
+        
+        for run in runToProcess:
+            
+            self.logger.info('test') ; import pdb ; pdb.set_trace()
+            
+            # spacchetta il range di lumi sections in una lista piana.
+            # e.g.:
+            # 194116 : [1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L]
             RRList = []
-            for lumiRange in listOfRunsAndLumiFromRR[run]:
-                if lumiRange != []:
-                    for l in range(lumiRange[0],lumiRange[1]+1):
-                        RRList.append(long(l))
-            if run in procKeys and run <= lastUnclosedRun:
-                #print 'run ' + str(run) + ' is in procKeys'
-                if not run in dbsKeys and run != lastUnclosedRun:
-                    self.logger.error(error_run_not_in_DBS(run))
-                nFiles = 0
+            for lr in listOfRunsAndLumiFromRR[run]:
+                RRList += [l for l in range(lr[0], lr[1]+1)]
+    
+            self.logger.info('test') ; import pdb ; pdb.set_trace()
+            
+            if run in runToProcess:
+            
+                # get number of files listed in DBS for the given dataset and run
                 for data in self.dataSet.split(','):
-                    nFiles = self.getNumberOfFilesToProcessForRun(data,run)
+                    nFiles = getNumberOfFilesToProcessForRun(self.api, data, run)
                     if nFiles != 0:
                         break
-                if len(runsAndFiles[run]) < nFiles:
-                    #print runsAndFiles[run]
-                    self.logger.warning('I haven\'t processed all files yet : ' + str(len(runsAndFiles[run])) + ' out of ' + str(nFiles) + ' for run: ' + str(run))
-                    if nFiles - len(runsAndFiles[run]) <= missingFilesTolerance:
-                        timeoutManager('DBS_VERY_BIG_MISMATCH_Run'+str(run)) # resetting this timeout
-                        timeoutType = timeoutManager('DBS_MISMATCH_Run'+str(run), self.missingLumisTimeout)
-                        if timeoutType == 1:
-                            self.logger.error(error_timeout())
-                        else:
-                            if timeoutType == -1:
-                                warning_setting_dbs_mismatch_timeout(run)
-                            else:
-                                warning_dbs_mismatch_timeout_progress(run)
-                            return filesToProcess
-                    else:
-                        timeoutType = timeoutManager('DBS_VERY_BIG_MISMATCH_Run'+str(run), self.missingLumisTimeout)
-                        if timeoutType == 1:
-                            self.logger.error(error_timeout(runsAndFiles, self.missingLumisTimeout, run))
-                            return filesToProcess
-                        else:
-                            if timeoutType == -1:
-                                self.logger.warning('Setting the DBS_VERY_BIG_MISMATCH_Run' + str(run) + ' timeout because I haven\'t processed all files!')
-                            else:
-                                self.logger.warning('Timeout DBS_VERY_BIG_MISMATCH_Run' + str(run) + ' is in progress.')
-                            return filesToProcess
+                        
+                # check that the most part of the files have been processed
+                # by crab. Some tolerance is allowed, through config file
 
-                else:
-                    timeoutManager('DBS_VERY_BIG_MISMATCH_Run'+str(run))
-                    timeoutManager('DBS_MISMATCH_Run'+str(run))
-                    #print 'I have processed ' + str(len(runsAndFiles[run])) + ' out of ' + str(nFiles) + ' files that are in DBS. So I should have all the lumis!'
+                filesToProcess = self._checkProcessedFiles(run, runsAndFiles, nFiles, filesToProcess)
+                
+                self.logger.info('test') ; import pdb ; pdb.set_trace()
+                
                 errors          = []
                 badProcessed    = []
                 badDBSProcessed = []
@@ -295,19 +325,22 @@ class BeamSpotWorkflow(object):
                 badRRProcessed  = []
                 badRR           = []
                 #It is important for runsAndLumisProcessed[run] to be the first because the comparision is not ==
-                badDBSProcessed, badDBS = self.compareLumiLists(runsAndLumisProcessed[run],listOfRunsAndLumiFromDBS[run],errors)
-                for i in range(0,len(errors)):
-                    errors[i] = errors[i].replace('listA','the processed lumis')
-                    errors[i] = errors[i].replace('listB','DBS')
+                badDBSProcessed, badDBS = compareLumiLists(runsAndLumisProcessed   [run]    ,
+                                                           listOfRunsAndLumiFromDBS[run]    ,
+                                                           listAName = 'the processed lumis',
+                                                           listBName = 'DBS lumis'          )
                 if len(badDBS) != 0:
-                    self.logger.warning('This is weird because I processed more lumis than the ones that are in DBS!')
+                    self.logger.warning('This is weird because I processed '\
+                                        'more lumis than the ones that are '\
+                                        'in DBS!')
+                                        
                 if len(badDBSProcessed) != 0 and run in rrKeys:
                     lastError = len(errors)
                     #It is important for runsAndLumisProcessed[run] to be the first because the comparision is not ==
-                    badRRProcessed, badRR = self.compareLumiLists(runsAndLumisProcessed[run],RRList,errors)
-                    for i in range(0,len(errors)):
-                        errors[i] = errors[i].replace('listA','the processed lumis')
-                        errors[i] = errors[i].replace('listB','Run Registry')
+                    badRRProcessed, badRR = compareLumiLists(runsAndLumisProcessed[run]       ,
+                                                             RRList                           ,
+                                                             listAName = 'the processed lumis',
+                                                             listBName = 'Run Registry'       )
                     if len(badRRProcessed) != 0:
                         for lumi in badDBSProcessed:
                             if lumi in badRRProcessed:
@@ -402,19 +435,19 @@ class BeamSpotWorkflow(object):
                                logger = self.logger)
         
         ######### Get from DBS the list of Runs and lumis last IOV
-        listOfRunsAndLumiFromDBS = getListOfRunsAndLumiFromDBS(self.api       ,
+        jsonOfRunsAndLumiFromDBS = getListOfRunsAndLumiFromDBS(self.api       ,
                                                                self.dataSet   , 
                                                                lastUploadedIOV,
                                                                self.logger    )
-
+        import pdb ; pdb.set_trace()
+        listOfRunsAndLumiFromDBS = readJson(lastUploadedIOV, 
+                                            jsonOfRunsAndLumiFromDBS)
+        
         self.logger.info('Getting list of runs >=%s and lumis from Json %s' \
                          %(lastUploadedIOV, self.jsonFileName))
                          
         listOfRunsAndLumiFromJson = readJson(lastUploadedIOV  , 
                                              self.jsonFileName)
-
-
-        import pdb ; pdb.set_trace()
 
         ######### Get list of files to process for DB
         # Possibly we just want to do a diff between the two jsons...

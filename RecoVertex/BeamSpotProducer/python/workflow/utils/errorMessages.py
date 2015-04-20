@@ -93,7 +93,8 @@ def error_failed_copy(copiedFiles, newProcessedFileList):
     return msg
 
 
-def error_failed_copy_dirs(copiedFiles, selectedFilesToProcess, archiveDir, workingDir):
+def error_failed_copy_dirs(copiedFiles, selectedFilesToProcess, 
+                           archiveDir, workingDir):
     msg = 'I can\'t copy more than {COPIEDFILES} files out of '\
           '{ALLFILES} from {ARCHIVEDIR} to '\
           '{WORKDIR}'.format(COPIEDFILES = str(len(copiedFiles))           ,
@@ -148,9 +149,10 @@ def warning_create_new_tag(dbError):
     
 def warning_not_all_file_yet(run, runsAndFiles, nFiles):
     msg = 'I haven\'t processed all files yet : {RUNSNFILES} out of '\
-          '{NFILES} for run: {RUN}'.firmat(RUNSNFILES = str(len(runsAndFiles[run])),
-                                           NFILES     = str(nFiles),
-                                           RUN        = str(run))
+          '{NFILES} for run: '\
+          '{RUN}'.format(RUNSNFILES = str(len(runsAndFiles[run])),
+                         NFILES     = str(nFiles)                ,
+                         RUN        = str(run)                   )
     return msg
     
 
@@ -173,7 +175,8 @@ def error_cant_connect_db(dbError):
 
 def warning_setting_dbs_mismatch_timeout(run):
     msg = 'Setting the DBS_MISMATCH_Run{RUN} '\
-          'timeout because I haven\'t processed all files!'.format(RUN = str(RUN))
+          'timeout because I haven\'t processed all '\
+          'files!'.format(RUN = str(RUN))
     return msg
 
 
@@ -184,7 +187,8 @@ def warning_dbs_mismatch_timeout_progress(run):
     
 
 def warning_more_lumi_than_dbs():
-    msg = 'This is weird because I processed more lumis than the ones that are in DBS!'
+    msg = 'This is weird because I processed more lumis than the '\
+          'ones that are in DBS!'
     return msg
     
 
@@ -198,4 +202,12 @@ def warning_bad_rr_size(badRRProcessed, badDBSProcessed):
     msg = 'badRRProcessed size is {BADRR} and badDBSProcessed size '\
           'is {BADDBS}'.format(BADRR  = str(len(badRRProcessed))  ,
                                BADBDS = str(len(badDBSProcessed)) )
+    return msg
+
+
+def error_lumi_in_run(begLumi, run):
+    msg = 'Lumi {BEGLUMI} in event {RUN} already exist. '\
+          'This MUST not happen but right now           '\
+          'I will ignore this lumi!'.format(BEGLUMI = str(begLumi),
+                                            RUN     = str(run)    )
     return msg

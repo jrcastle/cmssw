@@ -10,17 +10,25 @@ else:
 def readJson(firstRun = -1, fileName = ''):
     '''
     Reads the json <fileName> file and casts the run 
-    number from string to long integer.
+    number from string to integer.
     Returns only runs with run number >= <firstRun>
     '''
     
-    file = open(fileName)
-    jsonFile = file.read()
-    file.close()
-    jsonList = json.loads(jsonFile)
-
-    selected_dcs = {long(k):v for k, v in json.loads(jsonFile).items() \
-                    if long(k) >= firstRun}
+    try:
+        # load the json if this is in a file
+        file = open(fileName)
+        jsonFile = file.read()
+        file.close()
+        jsonList = json.loads(jsonFile)
+    except:
+        # but can work even if you passed the full json string
+        jsonList = json.loads(fileName)
+    else:
+        # none of above
+        print 'json not valid. Not a file, nor a json object (str)'
+        exit()
+            
+    selected_dcs = {int(k):v for k, v in jsonList.items() if int(k) >= firstRun}
     
     return selected_dcs
 

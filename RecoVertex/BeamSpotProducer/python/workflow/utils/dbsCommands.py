@@ -16,6 +16,11 @@ def ranges(i):
         yield b[0][1], b[-1][1]
 
 
+def getNumberOfFilesToProcessForRun(api, dataset, run):
+    run = int(run)
+    return len(api.listFiles(dataset = dataSet, run_num = run))
+    
+    
 def getListOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, logger = None):
     
     '''
@@ -62,10 +67,9 @@ def getListOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, logger = None):
                                'to process, exiting.')
        exit()
     
-    return runsAndLumis   # non compact dictionary
-
-    #runsAndLumisJson = json.dumps(runsAndLumis)        
-    #return runsAndLumisJson  # the nice CMS like json
+    runsAndLumisJson = json.dumps(runsAndLumis)        
+    return runsAndLumisJson  # the nice CMS like json
+    #return runsAndLumis   # non compact dictionary
 
 
 if __name__ == '__main__':
