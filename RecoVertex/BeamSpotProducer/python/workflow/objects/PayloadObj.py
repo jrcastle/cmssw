@@ -5,6 +5,9 @@ from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 
 class Payload(object):
     '''
+    Class meant to connect the BeamSpot fit results as saved in a typical
+    Payload ASCII file, to actual BeamSpot objects, that are much 
+    nicer to handle
     '''
     
     def __init__(self, files):
@@ -31,12 +34,7 @@ class Payload(object):
                     lines.append(line) 
         
         self.lines = lines
-    
-    def writeFile(self, payload):
-        '''
-        '''
-        pass
-    
+        
     def splitBySingleFit(self):
         '''
         '''
@@ -55,7 +53,7 @@ class Payload(object):
         Return a dictionary of dictionaries, as the following:
         { Run : {Lumi Range: BeamSpot Fit Object} }
         
-        Parses the files passed when the Payload is istantiated
+        Parses the files passed when the Payload is instantiated.
         '''
         
         singleFits = self.splitBySingleFit()
@@ -113,7 +111,29 @@ class Payload(object):
                 beamspots.update( toadd )
                    
         return beamspots
+    
+    def getProcessedLumiSections(self):
+        '''
+        Returns a dictionary with the run numbers as keys and the full
+        list of lumi sections processed (fully extended), like:
+        { Run : [ LS1, LS2, LS10, ...]}
+        '''
+        
+        beamspots = self.fromTextToBS()
+        
+        runsAndLumis = { run : [] for run in beamspots.keys() }
+        
+        for k, v in beamspots.items():
             
+            for lumi_range in v.keys():
+                start = int( lumi_range.split('-')[0] )
+                end   = int( lumi_range.split('-')[1] ) + 1
+                runsAndLumis[k].extend( range(start, end) )
+            
+            # sort LS nicely
+            runsAndLumis[k] = sorted(runsAndLumis[k])
+
+        return runsAndLumis
 
 if __name__ == '__main__':
     
