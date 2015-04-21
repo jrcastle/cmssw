@@ -24,7 +24,7 @@ import sys
 
 parser = OptionParser()
 parser.add_option('-d', '--dir'      ,  dest = 'data'     , help = 'Data file/directory'                                                                  )
-parser.add_option('-t', '--tag'      ,  dest = 'tag'      , help = 'Tag name'                                                                             )
+parser.add_option('-t', '--tag'      ,  dest = 'tag'      , help = 'Global tag name'                                                                      )
 parser.add_option('-c', '--cfg'      ,  dest = 'cfg'      , help = 'Use a different configuration file than the default', default = 'bswf_template_cfg.py')
 parser.add_option('-l', '--lock'     ,  dest = 'lock'     , help = 'Create a lock file to have just one script running' , action = 'store_true'           )
 parser.add_option('-o', '--overwrite',  dest = 'overwrite', help = 'Overwrite results files when copying.'              , action = 'store_true'           )
@@ -38,9 +38,10 @@ parser.add_option('-z', '--zlarge'   ,  dest = 'zlarge'   , help = 'Enlarge sigm
 execfile(options.cfg) 
 
 bswf = BeamSpotWorkflow( 
-                         cfg       = cfg                  ,
-                         lock      = options.lock         ,
-                         overwrite = options.overwrite    ,
+                         cfg       = cfg              ,
+                         lock      = options.lock     ,
+                         overwrite = options.overwrite,
+                         globaltag = options.tag      ,
                        )
 
 bswf.process()

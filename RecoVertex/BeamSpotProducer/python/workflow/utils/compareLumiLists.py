@@ -18,7 +18,7 @@ def compareLumiLists(logger, listA, listB, tolerance = 0,
                      ''.format(A = listAName,
                                     B = listBName))
     
-    if setA == setA:
+    if setA == setB:
         return [], [] # all is well, return
     
     if len(listA) < len(listB) * (1 - 0.01 * tolerance):
@@ -32,13 +32,13 @@ def compareLumiLists(logger, listA, listB, tolerance = 0,
     badB = setA - setB        
     badA = setB - setA        
     
-    for lumi in badA:
+    for lumi in badB:
         logger.error('\t\tLumi {LUMI} is in {A} but not in {B}'\
                      ''.format(LUMI = lumi     , 
                                A    = listAName,
                                B    = listBName))        
 
-    for lumi in badB:
+    for lumi in badA:
         logger.error('\t\tLumi {LUMI} is in {B} but not in {A}'\
                      ''.format(LUMI = lumi     , 
                                B    = listBName,

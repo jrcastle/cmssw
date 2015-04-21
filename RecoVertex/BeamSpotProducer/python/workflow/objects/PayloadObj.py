@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import math
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 
 class Payload(object):
@@ -16,19 +15,16 @@ class Payload(object):
         # can pass a single or a list of txt files
         if not isinstance(files, (list, tuple)):
             files = [files]
-        
-        #self.run     = str(run)
-        self.inFiles = files
+
         self._readFiles(files)
     
     def _readFiles(self, files):
         '''
+        Reads the Payload files.
         '''
         lines = []
         
         for f in files:
-            #if self.run not in f:
-            #    print 'ERROR: check that the run corresponds to the files'
             with open(f, 'r') as file:
                 for line in file:
                     lines.append(line) 
@@ -37,11 +33,14 @@ class Payload(object):
         
     def splitBySingleFit(self):
         '''
+        Parses the ASCII files and slices them into a chunk for each fit.
         '''
         singleFits = {}
-        
+
         for i, line in enumerate(self.lines):
             line = line.rstrip()
+            # strings and numbers hardcoded here strictly depend on 
+            # the format of the Payload file 
             if 'LumiRange' in line:
                 singleFits[line] = [self.lines[j].rstrip() \
                                     for j in range(i-3, i+20)]
@@ -92,7 +91,7 @@ class Payload(object):
             bs.dxdzerr       = float( v[17].split()[5] )
             bs.dydzerr       = float( v[18].split()[6] )
             bs.beamWidthXerr = float( v[19].split()[7] )
-            # bs.beamWidthYerr = math.sqrt(float( v[16].split()[1] ) ) # not in cov matrix!
+            # bs.beamWidthYerr = float( v[16].split()[1] ) # not in cov matrix!
             # off diagonal terms
             bs.XYerr         = float( v[13].split()[2] )
             bs.YXerr         = float( v[14].split()[1] )
@@ -145,3 +144,6 @@ if __name__ == '__main__':
     
     allBs = myPL.fromTextToBS()
     allBs[195660]['60-60'].Dump('bs_dump_195660_LS60.txt', 'w+')
+    
+    print myPL.getProcessedLumiSections()
+
