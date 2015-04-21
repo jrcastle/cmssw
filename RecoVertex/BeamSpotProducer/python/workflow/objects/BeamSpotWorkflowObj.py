@@ -11,14 +11,14 @@ from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods    import ls, read
 from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods    import timeoutManager, createWeightedPayloads 
 
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages    import *
+from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi      import setupDbsApi
 from RecoVertex.BeamSpotProducer.workflow.utils.initLogger       import initLogger
 from RecoVertex.BeamSpotProducer.workflow.utils.smartCopy        import cyclicCp
 from RecoVertex.BeamSpotProducer.workflow.utils.locker           import Locker
 from RecoVertex.BeamSpotProducer.workflow.utils.readJson         import readJson
 from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands      import getListOfRunsAndLumiFromDBS, getNumberOfFilesToProcessForRun
+from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands   import getLastUploadedIOV
 from RecoVertex.BeamSpotProducer.workflow.utils.compareLumiLists import compareLumiLists
-from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi      import setupDbsApi
-    
     
 class BeamSpotWorkflow(object):
     '''
@@ -178,32 +178,6 @@ class BeamSpotWorkflow(object):
 
         return filesToProcess
        
-    def getLastUploadedIOV(self):
-        '''
-        This function gets the last uploaded IOV from the conditional DB
-        to make sure we are not re-running on already considered runs
-        '''
-        self.logger.info('Getting last IOV for tag: ' + self.databaseTag)
-        listIOVCommand = 'conddb --nocolor list {TAGNAME} -L 2000000000000'.format(TAGNAME = self.tagName)
-        dbError = commands.getstatusoutput( listIOVCommand )
-        self.logger.debug(dbError)
-        if dbError[0] != 0 :
-            if 'metadata entry {TAGNAME} does not exist'.format(TAGNAME= self.tagName) in dbError[1]:
-                self.logger.warning('Creating a new tag because I got the following '\
-                                    'error contacting the DB \n%s' %dbError[1])
-                return 1
-            else:
-                self.logger.error(error_cant_connect_db(dbError[1]))
-
-        aCommand = listIOVCommand+' | grep Beam | tail -1 | awk \'{print $1}\''
-        output = commands.getstatusoutput( aCommand )
-        #WARNING when we pass to lumi IOV this should be long long
-        if output[1] == '':
-          self.logger.error(error_tag_exist_last_iov_doesnt(self.tagName, emails = []))
-        goodoutput =  output[1].split('\n')[1]
-        self.logger.info('Last IOV from DB = %d' %int(goodoutput))
-        return long(goodoutput)
-
     def getRunNumberFromFileName(self, fileName):
         regExp = re.search('(\D+)(\d+)_(\d+)_[a-zA-Z0-9]+.txt',fileName)
         if not regExp:
@@ -407,7 +381,9 @@ class BeamSpotWorkflow(object):
         #FIXME: That's an hack to make it work with the example files
         #       by Kevin, need to remove the following line in normal operations
         try:
-            lastUploadedIOV = self.getLastUploadedIOV()
+            lastUploadedIOV = getLastUploadedIOV(self.logger     , 
+                                                 self.databaseTag, 
+                                                 self.tagName    )
         except:
             self.logger.warning('This is an hack to make it work with the '\
                                 'example files by Kevin, '                 \

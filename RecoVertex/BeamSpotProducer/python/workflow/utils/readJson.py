@@ -12,6 +12,7 @@ def readJson(firstRun = -1, fileName = ''):
     Reads the json <fileName> file and casts the run 
     number from string to integer.
     Returns only runs with run number >= <firstRun>
+    Works also in case <fileName> is a json compliant string.
     '''
     
     try:

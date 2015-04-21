@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import os
+
 try:
     from dbs.apis.dbsClient import DbsApi
 except:
