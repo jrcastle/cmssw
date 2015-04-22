@@ -6,20 +6,20 @@ import sys
 
 import RecoVertex.BeamSpotProducer.workflow.utils.colorer
 
-from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj    import BeamSpot
-from RecoVertex.BeamSpotProducer.workflow.objects.PayloadObj     import Payload
+from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj  import BeamSpot
+from RecoVertex.BeamSpotProducer.workflow.objects.PayloadObj   import Payload
 
-from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods    import ls, readBeamSpotFile, sortAndCleanBeamList
-from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods    import timeoutManager, createWeightedPayloads 
+from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods  import timeoutManager, createWeightedPayloads 
 
-from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages    import *
-from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi      import setupDbsApi
-from RecoVertex.BeamSpotProducer.workflow.utils.initLogger       import initLogger
-from RecoVertex.BeamSpotProducer.workflow.utils.locker           import Locker
-from RecoVertex.BeamSpotProducer.workflow.utils.readJson         import readJson
-from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands      import getListOfRunsAndLumiFromDBS, getNumberOfFilesToProcessForRun
-from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands   import getLastUploadedIOV
-from RecoVertex.BeamSpotProducer.workflow.utils.compareLists     import compareLists
+from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages  import *
+from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi    import setupDbsApi
+from RecoVertex.BeamSpotProducer.workflow.utils.initLogger     import initLogger
+from RecoVertex.BeamSpotProducer.workflow.utils.locker         import Locker
+from RecoVertex.BeamSpotProducer.workflow.utils.readJson       import readJson
+from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands    import getListOfRunsAndLumiFromDBS, getNumberOfFilesToProcessForRun
+from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands import getLastUploadedIOV
+from RecoVertex.BeamSpotProducer.workflow.utils.compareLists   import compareLists
+from RecoVertex.BeamSpotProducer.workflow.utils.beamSpotMerge  import averageBeamSpot
     
 class BeamSpotWorkflow(object):
     '''
@@ -38,7 +38,7 @@ class BeamSpotWorkflow(object):
                                  formatter_options = '%Y-%m-%d %H:%M:%S'    ,
                                  emails            = cfg.mailList           ,
                                  file_level        = 'info'                 ,
-                                 stream_level      = 'debug'                 ,
+                                 stream_level      = 'debug'                ,
                                  email_level       = 'critical'             )
         
         self.logger.info('Initialising a BeamSpotWorkflow class')
@@ -175,58 +175,6 @@ class BeamSpotWorkflow(object):
                 runsInJSONnotInDBS , runsInDBSnotInJSON ,\
                 runsInDBSnotInCRAB , runsInCRABnotInDBS )
 
-    def _checkMissingProcFiles(self, run, procFilesForRun, nDbsFilesForRun, 
-                               filesToProcess):
-        '''
-        A 1:1 correspondance between DBS files and processed files is expected.
-        However the number of processed files can be smaller because of 
-        job failures and things as such.
-        
-        Here we check that things don't get too slow.
-        '''
-        
-        self.logger.warning('I haven\'t processed all files yet : ' \
-                            + str(len(procFilesForRun)) +           \
-                            ' out of ' + str(nDbsFilesForRun) +     \
-                            ' for run: ' + str(run))
-        
-        nProcFilesForRun =  len(procFilesForRun)
-                             
-        if abs(nProcFilesForRun - nDbsFilesForRun) <= self.missingFilesTolerance:
-            
-            timeoutManager('DBS_VERY_BIG_MISMATCH_Run%d'%run) # resetting this timeout
-            
-            timeoutType = timeoutManager('DBS_MISMATCH_Run'+str(run), 
-                                         self.missingLumisTimeout   )
-            
-            
-            if timeoutType == 1:
-                self.logger.warning('WARNING: I previously set a timeout that '\
-                                    '\expired...I\'ll continue with the script '\
-                                    'even if I didn\'t process all the lumis!')
-            else:
-                if timeoutType == -1:
-                    print 'WARNING: Setting the DBS_MISMATCH_Run' + str(run) + ' timeout because I haven\'t processed all files!'
-                else:
-                    print 'WARNING: Timeout DBS_MISMATCH_Run' + str(run) + ' is in progress.'
-                return filesToProcess
-        else:
-        
-            timeoutType = timeoutManager('DBS_VERY_BIG_MISMATCH_Run'+str(run),
-                                         self.missingLumisTimeout            )
-            
-            if timeoutType == 1:
-                error = 'ERROR: I previously set a timeout that expired...I can\'t continue with the script because there are too many (' + str(nFiles - len(runsAndFiles[run])) + ' files missing) and for too long ' + str(missingLumisTimeout/3600) + ' hours! I will process anyway the runs before this one (' + str(run) + ')'
-                sendEmail(mailList,error)
-                return filesToProcess
-                #exit(error)
-            else:
-                if timeoutType == -1:
-                    print 'WARNING: Setting the DBS_VERY_BIG_MISMATCH_Run' + str(run) + ' timeout because I haven\'t processed all files!'
-                else:
-                    print 'WARNING: Timeout DBS_VERY_BIG_MISMATCH_Run' + str(run) + ' is in progress.'
-                return filesToProcess
-
     def _logMissingLumi(self, missingProcLS, lumisInJSONnotInCRAB,
                         lumisInDBSnotInCRAB, lumisJSON, run, filesToProcess):
         '''
@@ -278,7 +226,6 @@ class BeamSpotWorkflow(object):
                                  + str(run) + ' but I\'ll process the runs before!')
             return filesToProcess
         
-                   
     def process(self):
         
         '''
@@ -347,9 +294,6 @@ class BeamSpotWorkflow(object):
             # I have to understand this... later
             if len(procFilesForRun) < nDbsFilesForRun:
                 pass
-                #self._checkMissingProcFiles(procFilesForRun, 
-                #                            nDbsFilesForRun, 
-                #                            filesToProcess )
             else:
                 timeoutManager('DBS_VERY_BIG_MISMATCH_Run%d'%run)
                 timeoutManager('DBS_MISMATCH_Run%d'         %run)
@@ -397,13 +341,60 @@ class BeamSpotWorkflow(object):
                                     'but some DBS lumis are not. '         \
                                     'Fine, moving on') 
             
-            
-            
-            
+        # FIXME! RIC: here we'd need to check the BS slow drift
+        #             and sub divide the beam spot list into smaller 
+        #             chunks to be fed into averageBeamSpot()
             
         import pdb ; pdb.set_trace()     
+
+        # LumiRange 1   - 50
+        # LumiRange 51  - 67
+        # LumiRange 68  - 105
+        # LumiRange 106 - 109
+        # LumiRange 110 - 134
+        # LumiRange 135 - 153
+        # LumiRange 161 - 182
+        # LumiRange 183 - 186
+        # LumiRange 193 - 201
+        # LumiRange 202 - 220
+
+        bslist_1_50    = runsLumisBSCRAB.values()[0].values()[0   : 50 ]
+        bslist_51_67   = runsLumisBSCRAB.values()[0].values()[50  : 67 ]
+        bslist_68_105  = runsLumisBSCRAB.values()[0].values()[67  : 105]
+        bslist_106_109 = runsLumisBSCRAB.values()[0].values()[105 : 109]
+        bslist_110_134 = runsLumisBSCRAB.values()[0].values()[109 : 134]
+        bslist_135_153 = runsLumisBSCRAB.values()[0].values()[134 : 160]
+        bslist_161_182 = runsLumisBSCRAB.values()[0].values()[160 : 182]
+        bslist_183_186 = runsLumisBSCRAB.values()[0].values()[182 : 192]
+        bslist_193_201 = runsLumisBSCRAB.values()[0].values()[192 : 201]
+        bslist_202_220 = runsLumisBSCRAB.values()[0].values()[201 : 220]
             
-            
+        # just for testing, for now, merging the entire run 195660
+        #aveBeamSpot = averageBeamSpot(runsLumisBSCRAB.values()[0].values())    
+        #aveBeamSpot.Dump('Payload_tot.txt')
+        
+        aveBeamSpot = averageBeamSpot(bslist_1_50   ) 
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_51_67  )
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_68_105 )
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_106_109)
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_110_134)
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_135_153)
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_161_182)
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_183_186)
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_193_201)
+        aveBeamSpot.Dump('Payload_tot.txt')
+        aveBeamSpot = averageBeamSpot(bslist_202_220)       
+        aveBeamSpot.Dump('Payload_tot.txt')
+
+        import pdb ; pdb.set_trace()     
             
             
         # RIC: works as expected so far. 
@@ -418,6 +409,10 @@ class BeamSpotWorkflow(object):
         #
         # we also need to rewrite completely 'createWeightedPayloads'
         # it is such a mess.
+        #
+        # HSL
+
+
 
         self.logger.info('Sorting and cleaning beamlist')
         beamSpotObjList = []
