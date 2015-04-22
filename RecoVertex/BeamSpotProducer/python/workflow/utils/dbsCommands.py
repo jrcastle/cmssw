@@ -3,7 +3,7 @@
 import pprint
 import sys
 import itertools
-from RecoVertex.BeamSpotProducer.workflow.utils.readJson   import readJson
+from RecoVertex.BeamSpotProducer.workflow.utils.readJson import readJson
 
 
 if sys.version_info < (2,6,0):

@@ -42,7 +42,6 @@ class BeamSpot(object):
         self.dxdzdydzerr   =  0.
         self.dydzdxdzerr   =  0.
 
-
     def Dump(self, file, mode = 'a'):
         
         f = open(file, mode)
@@ -77,13 +76,13 @@ class BeamSpot(object):
                   'dydz {DYDZ}\n'                               \
                   'BeamWidthX {BWX}\n'                          \
                   'BeamWidthY {BWY}\n'                          \
-                  'Cov(0,j) {M00} {M01} 0 0 0 0 0 \n'           \
-                  'Cov(1,j) {M10} {M11} 0 0 0 0 0 \n'           \
-                  'Cov(2,j) 0 0 {M22} 0 0 0 0 \n'               \
-                  'Cov(3,j) 0 0 0 {M33} 0 0 0 \n'               \
-                  'Cov(4,j) 0 0 0 0 {M44} {M45} 0 \n'           \
-                  'Cov(5,j) 0 0 0 0 {M54} {M55} 0 \n'           \
-                  'Cov(6,j) 0 0 0 0 0 0 {M66} \n'               \
+                  'Cov(0,j) {M00} {M01} 0 0 0 0 0\n'            \
+                  'Cov(1,j) {M10} {M11} 0 0 0 0 0\n'            \
+                  'Cov(2,j) 0 0 {M22} 0 0 0 0\n'                \
+                  'Cov(3,j) 0 0 0 {M33} 0 0 0\n'                \
+                  'Cov(4,j) 0 0 0 0 {M44} {M45} 0\n'            \
+                  'Cov(5,j) 0 0 0 0 {M54} {M55} 0\n'            \
+                  'Cov(6,j) 0 0 0 0 0 0 {M66}\n'                \
                   'EmittanceX {EMX}\n'                          \
                   'EmittanceY {EMY}\n'                          \
                   'BetaStar {BSTAR}\n'                          \

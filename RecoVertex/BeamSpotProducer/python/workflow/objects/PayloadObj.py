@@ -143,6 +143,7 @@ class Payload(object):
 
         return runsAndLumis
 
+
 if __name__ == '__main__':
     
     myPL = Payload('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_4_0_pre8/src/'\
@@ -152,7 +153,7 @@ if __name__ == '__main__':
     allLines = myPL.splitBySingleFit()
     
     allBs = myPL.fromTextToBS()
-    allBs[195660]['60-60'].Dump('bs_dump_195660_LS60.txt', 'w+')
+    allBs[195660][60].Dump('bs_dump_195660_LS60.txt', 'w+')
     
     print myPL.getProcessedLumiSections()
 
