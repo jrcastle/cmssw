@@ -17,14 +17,15 @@ def getLastUploadedIOV(databaseTag, tagName, logger = None, maxIOV = 2e13):
         
     listIOVCommand = ['conddb', '--nocolors', 'list', 
                       databaseTag, '-L', '%d'%maxIOV]
-                      
+    
     if logger: logger.info('Getting last IOV for tag: %s' %databaseTag)
     if logger: logger.info(' '.join(listIOVCommand))
 
     conddb_query = Popen(listIOVCommand, stdout = PIPE, stderr = PIPE)
     out, err = conddb_query.communicate()
     
-    # typical output
+    # Typical output:
+    # 
     # Since              Insertion Time       Payload                                   Object Type
     # -----------------  -------------------  ----------------------------------------  ---------------
     # 1 Lumi     1       2014-02-13 14:31:05  dc69c77dbeae7ebe539367dcc21d36bd12b7c264  BeamSpotObjects

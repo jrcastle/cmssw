@@ -3,6 +3,8 @@
 import pprint
 import sys
 import itertools
+from RecoVertex.BeamSpotProducer.workflow.utils.readJson   import readJson
+
 
 if sys.version_info < (2,6,0):
     import json
@@ -15,13 +17,11 @@ def ranges(i):
         b = list(b)
         yield b[0][1], b[-1][1]
 
-
 def getNumberOfFilesToProcessForRun(api, dataset, run):
     run = int(run)
-    return len(api.listFiles(dataset = dataSet, run_num = run))
+    return len(api.listFiles(dataset = dataset, run_num = run))
     
-    
-def getListOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, logger = None):
+def getJsonOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, logger = None):
     
     '''
     Queries the DBS for the runs and lumi sections for the dataset <dataSet>
@@ -55,12 +55,11 @@ def getListOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, logger = None):
             lumis  = output[0]['lumi_section_num']
             
             if run < lastRun             : continue
-            if run in runsAndLumis.keys(): continue
             
-            # this creates a nicer list of ranges, that can go directly into 
-            # a CMS like json 
-            runsAndLumis[run] = list(ranges(sorted(lumis)))
-            #runsAndLumis[run] = sorted(lumis)
+            if run in runsAndLumis.keys(): 
+                runsAndLumis[run] += sorted(list(ranges(sorted(lumis))))
+            else:         
+                runsAndLumis[run]  = sorted(list(ranges(sorted(lumis))))
     
     if len(runsAndLumis) == 0:
        if logger: logger.error('There are no new runs or lumis in DBS '\
@@ -69,8 +68,24 @@ def getListOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, logger = None):
     
     runsAndLumisJson = json.dumps(runsAndLumis)        
     return runsAndLumisJson  # the nice CMS like json
-    #return runsAndLumis   # non compact dictionary
 
+def getListOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, 
+                                logger = None, packed = False):
+
+    '''
+    Reads a json and returns a dictionary like
+    {194116 : [[2,5], [15,18]]}               if packed
+    {194116 : [2, 3, 4, 5, 15, 16, 17, 18]}   if not packed
+    '''
+    
+    runsAndLumisJson = getJsonOfRunsAndLumiFromDBS(api    ,
+                                                   dataSet, 
+                                                   lastRun,
+                                                   logger )
+    
+    runsAndLumisList = readJson(lastRun, runsAndLumisJson, packed)
+                                                   
+    return runsAndLumisList
 
 if __name__ == '__main__':
 
@@ -80,8 +95,11 @@ if __name__ == '__main__':
     dataSet = '/StreamExpress/Run2012B-TkAlMinBias-v1/ALCARECO'
     lastRun = 194000
     
+#     runsAndLumis = getListOfRunsAndLumiFromDBS(api, dataSet, lastRun)
     runsAndLumis = getListOfRunsAndLumiFromDBS(api, dataSet, lastRun)
     
-    pp = pprint.PrettyPrinter(indent = 4)
-    pp.pprint(runsAndLumis)
+    print runsAndLumis[195660]
+    
+#     pp = pprint.PrettyPrinter(indent = 4)
+#     pp.pprint(runsAndLumis)
 

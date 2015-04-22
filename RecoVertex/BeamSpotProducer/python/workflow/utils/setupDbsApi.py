@@ -5,7 +5,7 @@ import os
 try:
     from dbs.apis.dbsClient import DbsApi
 except:
-    print 'ERROR: you need to set a Crab environment first, in order '\
+    print 'ERROR: you need to set up a Crab environment first, in order '\
           'to connect to DBS3'
     shell = os.getenv('SHELL')
     if 'csh' in shell:  

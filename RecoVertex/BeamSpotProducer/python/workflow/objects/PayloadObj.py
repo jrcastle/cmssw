@@ -103,10 +103,15 @@ class Payload(object):
 
             bs.betastar      = float( v[22].split()[1] )
 
+            if bs.IOVfirst == bs.IOVlast:
+                lsrange = bs.IOVfirst
+            else:
+                lsrange = '%d-%d' %(bs.IOVfirst, bs.IOVlast)
+                
             try:   
-                beamspots[bs.Run][str('%d-%d' %(bs.IOVfirst, bs.IOVlast))] = bs
+                beamspots[bs.Run][lsrange] = bs
             except:
-                toadd = { bs.Run : {str('%d-%d' %(bs.IOVfirst, bs.IOVlast)) : bs} }
+                toadd = { bs.Run : {lsrange : bs} }
                 beamspots.update( toadd )
                    
         return beamspots
@@ -125,8 +130,12 @@ class Payload(object):
         for k, v in beamspots.items():
             
             for lumi_range in v.keys():
-                start = int( lumi_range.split('-')[0] )
-                end   = int( lumi_range.split('-')[1] ) + 1
+                try:
+                    start = int( lumi_range.split('-')[0] )
+                    end   = int( lumi_range.split('-')[1] ) + 1
+                except:
+                    start = lumi_range
+                    end   = start +1
                 runsAndLumis[k].extend( range(start, end) )
             
             # sort LS nicely

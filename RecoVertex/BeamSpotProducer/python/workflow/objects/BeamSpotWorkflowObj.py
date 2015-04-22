@@ -15,12 +15,11 @@ from RecoVertex.BeamSpotProducer.workflow.utils.CommonMethods    import timeoutM
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages    import *
 from RecoVertex.BeamSpotProducer.workflow.utils.setupDbsApi      import setupDbsApi
 from RecoVertex.BeamSpotProducer.workflow.utils.initLogger       import initLogger
-from RecoVertex.BeamSpotProducer.workflow.utils.smartCopy        import cyclicCp
 from RecoVertex.BeamSpotProducer.workflow.utils.locker           import Locker
 from RecoVertex.BeamSpotProducer.workflow.utils.readJson         import readJson
 from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands      import getListOfRunsAndLumiFromDBS, getNumberOfFilesToProcessForRun
 from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands   import getLastUploadedIOV
-from RecoVertex.BeamSpotProducer.workflow.utils.compareLumiLists import compareLumiLists
+from RecoVertex.BeamSpotProducer.workflow.utils.compareLists     import compareLists
     
 class BeamSpotWorkflow(object):
     '''
@@ -68,6 +67,10 @@ class BeamSpotWorkflow(object):
             self._checkIfAlreadyRunning()
         
         self._setupDirectories()
+        
+        # This should be a bit more elaborated, possibly
+        self.procFileList = [file for file in os.listdir(self.sourceDir) 
+                             if '.txt' in file]
 
     def _checkIfAlreadyRunning(self):
         '''
@@ -117,12 +120,8 @@ class BeamSpotWorkflow(object):
         with one BeamSpotObject for each single fit.
         '''
         
-        # get the run numbers from the file names in resultsDir
-        fileList = [file for file in os.listdir(resultsDir) 
-                    if '.txt' in file]
-                    #if os.path.isfile(file) and '.txt' in file]
-                    
-        runs = set([re.findall(r'\d+', file)[1] for file in fileList]) 
+        # get the run numbers from the file names in resultsDir.
+        runs = set([re.findall(r'\d+', file)[1] for file in self.procFileList]) 
         files = []
         for run in runs:
             if int(run) <= minRun: continue
@@ -138,26 +137,148 @@ class BeamSpotWorkflow(object):
         runsLumisBS = newPayloadTot.fromTextToBS() 
         
         return runsLumis, runsLumisBS
-
-    def _unpackList(self, packedList):
-        '''
-        Unpacks a JSON like dictionary into something plainer
-        e.g.:
-        {194116 : [[2-5],[15-18]]}
-        {194116 : [2, 3, 4, 5, 15, 16, 17, 18]}
-        '''
-
-        unpackedList = {}
         
-        for k, v in packedList.items():
-            LSlist = []
-            for lr in v:
-                LSlist += [l for l in range(lr[0], lr[1]+1)]
+    def _getRunDiffs(self, runsLumisCRAB, runsLumisJSON, runsLumisDBS):
+        '''
+        Checks the runs that have been processed by CRAB, or listed
+        in DBS or listed in the JSON/RunRegistry.
+        Returns all the diffs.  
+        '''
+        ######### Get run numbers of runs that are in CRAB but not in JSON
+        ######### and vice-versa
+        runsInJSONnotInCRAB, runsInCRABnotInJSON = compareLists(runsLumisCRAB.keys()   , 
+                                                                runsLumisJSON.keys()   , 
+                                                                tolerance = 100        , 
+                                                                listAName = 'CRAB runs', 
+                                                                listBName = 'JSON runs',
+                                                                logger = self.logger   )
+
+
+        ######### Get run numbers of runs that are in DBS but not in the JSON
+        ######### and vice-versa
+        runsInJSONnotInDBS, runsInDBSnotInJSON = compareLists(runsLumisDBS .keys()   , 
+                                                              runsLumisJSON.keys()   , 
+                                                              tolerance = 100        , 
+                                                              listAName = 'DBS  runs', 
+                                                              listBName = 'JSON runs',
+                                                              logger = self.logger   )
+        
+        ######### Get run numbers of runs that are in CRAB but not in DBS
+        ######### and vice-versa
+        runsInDBSnotInCRAB, runsInCRABnotInDBS = compareLists(runsLumisCRAB.keys()   , 
+                                                              runsLumisDBS .keys()   , 
+                                                              tolerance = 100        , 
+                                                              listAName = 'CRAB runs', 
+                                                              listBName = 'DBS  runs',
+                                                              logger = self.logger   )
+        return (runsInJSONnotInCRAB, runsInCRABnotInJSON,\
+                runsInJSONnotInDBS , runsInDBSnotInJSON ,\
+                runsInDBSnotInCRAB , runsInCRABnotInDBS )
+
+    def _checkMissingProcFiles(self, run, procFilesForRun, nDbsFilesForRun, 
+                               filesToProcess):
+        '''
+        A 1:1 correspondance between DBS files and processed files is expected.
+        However the number of processed files can be smaller because of 
+        job failures and things as such.
+        
+        Here we check that things don't get too slow.
+        '''
+        
+        self.logger.warning('I haven\'t processed all files yet : ' \
+                            + str(len(procFilesForRun)) +           \
+                            ' out of ' + str(nDbsFilesForRun) +     \
+                            ' for run: ' + str(run))
+        
+        nProcFilesForRun =  len(procFilesForRun)
+                             
+        if abs(nProcFilesForRun - nDbsFilesForRun) <= self.missingFilesTolerance:
             
-            unpackedList[k] = LSlist
+            timeoutManager('DBS_VERY_BIG_MISMATCH_Run%d'%run) # resetting this timeout
+            
+            timeoutType = timeoutManager('DBS_MISMATCH_Run'+str(run), 
+                                         self.missingLumisTimeout   )
+            
+            
+            if timeoutType == 1:
+                self.logger.warning('WARNING: I previously set a timeout that '\
+                                    '\expired...I\'ll continue with the script '\
+                                    'even if I didn\'t process all the lumis!')
+            else:
+                if timeoutType == -1:
+                    print 'WARNING: Setting the DBS_MISMATCH_Run' + str(run) + ' timeout because I haven\'t processed all files!'
+                else:
+                    print 'WARNING: Timeout DBS_MISMATCH_Run' + str(run) + ' is in progress.'
+                return filesToProcess
+        else:
         
-        return unpackedList
-               
+            timeoutType = timeoutManager('DBS_VERY_BIG_MISMATCH_Run'+str(run),
+                                         self.missingLumisTimeout            )
+            
+            if timeoutType == 1:
+                error = 'ERROR: I previously set a timeout that expired...I can\'t continue with the script because there are too many (' + str(nFiles - len(runsAndFiles[run])) + ' files missing) and for too long ' + str(missingLumisTimeout/3600) + ' hours! I will process anyway the runs before this one (' + str(run) + ')'
+                sendEmail(mailList,error)
+                return filesToProcess
+                #exit(error)
+            else:
+                if timeoutType == -1:
+                    print 'WARNING: Setting the DBS_VERY_BIG_MISMATCH_Run' + str(run) + ' timeout because I haven\'t processed all files!'
+                else:
+                    print 'WARNING: Timeout DBS_VERY_BIG_MISMATCH_Run' + str(run) + ' is in progress.'
+                return filesToProcess
+
+    def _logMissingLumi(self, missingProcLS, lumisInJSONnotInCRAB,
+                        lumisInDBSnotInCRAB, lumisJSON, run, filesToProcess):
+        '''
+        If, for a given run, there are missing processed lumis, check if 
+        they're within the tolerance, or raise some errors.
+        '''
+                        
+        self.logger.warning('I have not processed some of the lumis that '\
+                            'are in the run registry for run: %d' %run    )
+                            
+        self.logger.warning('lumisInJSONnotInCRAB size is '      \
+                            + str( len(lumisInJSONnotInCRAB) ) +   \
+                            ' and lumisInDBSnotInCRAB size is '  \
+                            + str( len(lumisInDBSnotInCRAB) )      )
+        
+        percentageMissing = float( len(missingProcLS) ) / float( len(lumisJSON) )
+        
+        # relative tolerance
+        if percentageMissing <= self.dbsTolerancePercent:
+            self.logger.warning('I didn\'t process ' + str(percentageMissing) +      \
+                                '% of the lumis but '                                \
+                                'I am within the ' + str(self.dbsTolerancePercent) + \
+                                '% set in the configuration. Which '                 \
+                                'corrispond to ' + str(missingProcLS) + ' out of '   \
+                                + str(lumisJSON) + ' lumis')
+            
+            self.logger.warning('{BAD}'.format(BAD = missingProcLS))
+        
+        # absolute tolerance
+        elif len(missingProcLS) <= self.dbsTolerance:
+            self.logger.warning('I didn\'t process ' + str(missingProcLS) + \
+                                ' lumis but I am within the ' + str(self.dbsTolerance) + \
+                                ' lumis set in the configuration. Which corrispond to ' \
+                                + str(missingProcLS) + ' out of ' \
+                                + str(lumisJSON) + ' lumis')
+            self.logger.warning('{BAD}'.format(BAD = missingProcLS))
+ 
+        # RIC: beyond what's acceptable
+        else:    
+            self.logger.critical('For run ' + str(run) + ' I didn\'t process '   \
+                                 + str(percentageMissing) + '% of the lumis and I ' \
+                                 'am not within the ' + str(self.dbsTolerancePercent) \
+                                 + '% set in the configuration. The number of '  \
+                                 'lumis that I didn\'t process (' + str(missingProcLS) +  \
+                                 ' out of ' + str(dbsTolerance) + \
+                                 ') is greater also than the ' \
+                                 + str(self.dbsTolerance) + \
+                                 ' lumis that I can tolerate. I can\'t process runs >= ' \
+                                 + str(run) + ' but I\'ll process the runs before!')
+            return filesToProcess
+        
+                   
     def process(self):
         
         '''
@@ -165,6 +286,10 @@ class BeamSpotWorkflow(object):
         '''
         
         self.logger.info('Begin process')
+
+
+        filesToProcess = []
+
 
         ######### Check the last IOV from querying the COND DB
         #lastUploadedIOV = getLastUploadedIOV(self.databaseTag, 
@@ -179,91 +304,107 @@ class BeamSpotWorkflow(object):
         runsLumisCRAB, runsLumisBSCRAB = self._getRunLumiBeamspot(self.sourceDir , 
                                                                   lastUploadedIOV)
                 
-        ######### Get from DBS the list of Runs and lumis last IOV
-        jsonOfRunsAndLumiFromDBS = getListOfRunsAndLumiFromDBS(self.api       ,
-                                                               self.dataSet   , 
-                                                               lastUploadedIOV,
-                                                               self.logger    )
-        listOfRunsAndLumiFromDBS = readJson(lastUploadedIOV, 
-                                            jsonOfRunsAndLumiFromDBS)
+        ######### Get from DBS the list of Runs and lumis after last IOV
+        runsLumisDBS  = getListOfRunsAndLumiFromDBS(self.api       , 
+                                                    self.dataSet   , 
+                                                    lastUploadedIOV,
+                                                    packed = False )
+
+        ######### Get from JSON the list of Runs and lumis after last IOV
+        runsLumisJSON = readJson(lastUploadedIOV  , 
+                                 self.jsonFileName,
+                                 packed = False   )
+
+        ######## At this point for CRAB, JSON and DBS we have a dictionary like:
+        ######## {194116 : [2, 3, 4, 5, 15, 16, 17, 18]}
         
-        self.logger.info('Getting list of runs >=%s and lumis from Json %s' \
-                         %(lastUploadedIOV, self.jsonFileName))
-                         
-        listOfRunsAndLumiFromJson = readJson(lastUploadedIOV  , 
-                                             self.jsonFileName)
-
-
-        # this passage can be avoided and be made part of readJson
-        # e.g. with an option, packed or unpacked.
-        runsLumisDBS  = self._unpackList(listOfRunsAndLumiFromDBS )
-        runsLumisJSON = self._unpackList(listOfRunsAndLumiFromJson)
-
-        
-        # This part can be outsourced to a module outside self.process.
-
-        ######### Get run numbers of runs that are in CRAB but not in JSON
-        ######### and vice-versa
-        inJSONnotInCRAB, inCRABnotInJSON = compareLumiLists(self.logger         , 
-                                                            runsLumisCRAB.keys(), 
-                                                            runsLumisJSON.keys(), 
-                                                            tolerance = 100     , 
-                                                            listAName = 'CRAB'  , 
-                                                            listBName = 'JSON'  )
-
-        if len(inCRABnotInJSON) > 0:
-            self.logger.error('in CRAB not in JSON')
-            #exit()
-
-        ######### Get run numbers of runs that are in DBS but not in the JSON
-        ######### and vice-versa
-        inJSONnotInDBS, inDBSnotInJSON = compareLumiLists(self.logger         , 
-                                                          runsLumisDBS .keys(), 
-                                                          runsLumisJSON.keys(), 
-                                                          tolerance = 100     , 
-                                                          listAName = 'DBS'   , 
-                                                          listBName = 'JSON'  )
-        if len(inJSONnotInDBS) > 0:
-            self.logger.error('in JSON not in DBS')
-            #exit()
-        
-        
-        ######### Get run numbers of runs that are in CRAB but not in DBS
-        ######### and vice-versa
-        inDBSnotInCRAB, inCRABnotInDBS = compareLumiLists(self.logger         , 
-                                                          runsLumisCRAB.keys(), 
-                                                          runsLumisDBS .keys(), 
-                                                          tolerance = 100     , 
-                                                          listAName = 'CRAB'  , 
-                                                          listBName = 'DBS'   )
-
-        if len(inCRABnotInDBS) > 0:
-            self.logger.error('in CRAB not in DBS')
-            #exit()
-        
-        # RIC: here some logging and management of the missing runs is needed
-        # for now I only try to get it done till the end.
-        # 
-        # Not clear what should be consistent with what though, i.e.
-        # I think the JSON need to fully contained in the DBS, 
-        # but not vice versa
-        # The CRAB stuff should be contained in both DBS and JSON, 
-        # but not vice versa
-        # 
-        # Tolerances should be double checked too.
-        #
-        # exit() are commented out for now, since my dummy setup 
-        # it'd hardly be complete
-        
+        ######### Get from runs in {DBS, CRAB, JSON} but not in {DBS, CRAB, JSON}
+        runDiffs =  self._getRunDiffs(runsLumisCRAB, runsLumisJSON, runsLumisDBS)
+        runsInJSONnotInCRAB = runDiffs[0]
+        runsInCRABnotInJSON = runDiffs[1]
+        runsInJSONnotInDBS  = runDiffs[2]
+        runsInDBSnotInJSON  = runDiffs[3]
+        runsInDBSnotInCRAB  = runDiffs[4]
+        runsInCRABnotInDBS  = runDiffs[5]
+ 
+        if len(runsInCRABnotInDBS) and lastUnclosedRun not in runsInCRABnotInDBS:
+            self.logger.critical('Runs {RUNS} are processed but not in DBS'\
+                                 ''.format(RUNS = runsInCRABnotInDBS))
         
         # check that for the runs that are processed and in both JSON and DBS
         for run in runsLumisCRAB.keys():
-            LSinJSONnotInDBS, LSinDBSnotInJSON = compareLumiLists(self.logger         , 
-                                                                  runsLumisCRAB[run]  , 
-                                                                  runsLumisJSON[run]  , 
-                                                                  tolerance = 5       , 
-                                                                  listAName = 'CRABLS', 
-                                                                  listBName = 'JSONLS')
+            # number of files in DBS for the given run 
+            nDbsFilesForRun = getNumberOfFilesToProcessForRun(self.api    ,
+                                                              self.dataSet,
+                                                              run         )
+
+            # number of processed files and number of dbs files
+            # for the given run
+            procFilesForRun = [file for file in self.procFileList
+                               if str(run) in file]
+                               
+            # do something with the timeoutManager,
+            # I have to understand this... later
+            if len(procFilesForRun) < nDbsFilesForRun:
+                pass
+                #self._checkMissingProcFiles(procFilesForRun, 
+                #                            nDbsFilesForRun, 
+                #                            filesToProcess )
+            else:
+                timeoutManager('DBS_VERY_BIG_MISMATCH_Run%d'%run)
+                timeoutManager('DBS_MISMATCH_Run%d'         %run)
+                
+
+            # check how many lumis for the given run have been processed
+            lumisInDBSnotInCRAB, lumisInCRABnotInDBS = compareLists(runsLumisCRAB[run]                      , 
+                                                                    runsLumisDBS [run]                      , 
+                                                                    tolerance = 100                         , 
+                                                                    listAName = 'CRAB lumis for run %d' %run, 
+                                                                    listBName = 'DBS  lumis for run %d' %run,
+                                                                    logger = self.logger                    )
+            
+            # check whether there are lumis in CRAB that are not in DBS
+            # this should not happen at all!
+            if len(lumisInCRABnotInDBS):
+                self.logger.critical('This is weird because for run {RUN} '\
+                                     'I processed these '                  \
+                                     'lumis {LUMIS} that are not in '      \
+                                     'DBS!'.format(RUN   = str(run)           ,
+                                                   LUMIS = lumisInCRABnotInDBS))
+    
+            lumisInJSONnotInCRAB = []
+    
+            if len(lumisInDBSnotInCRAB) and run in runsLumisJSON.keys():
+                # check how many lumis for the given run have been processed
+                lumisInJSONnotInCRAB, lumisInCRABnotInJSON = compareLists(runsLumisCRAB[run]                      , 
+                                                                          runsLumisJSON[run]                      , 
+                                                                          tolerance = 100                         , 
+                                                                          listAName = 'CRAB lumis for run %d' %run, 
+                                                                          listBName = 'JSON lumis for run %d' %run,
+                                                                          logger = self.logger                    )
+            
+            # consider as missing lumis the ones that are present in 
+            # both the JSON and DBS but not in CRAB
+            missingProcLS = set(lumisInJSONnotInCRAB) & set(lumisInDBSnotInCRAB)
+            
+            if len(missingProcLS):
+                self._logMissingLumi(missingProcLS, lumisInJSONnotInCRAB,
+                                     lumisInDBSnotInCRAB, lumisJSON, 
+                                     run, filesToProcess)
+            
+            if len(set(lumisInDBSnotInCRAB) - set(lumisInJSONnotInCRAB)):
+                self.logger.warning('All JSON lumis have been processed , '\
+                                    'but some DBS lumis are not. '         \
+                                    'Fine, moving on') 
+            
+            
+            
+            
+            
+        import pdb ; pdb.set_trace()     
+            
+            
+            
             
         # RIC: works as expected so far. 
         # It would be nice to have a complete example, though, rather than 

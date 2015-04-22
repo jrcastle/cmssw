@@ -49,9 +49,7 @@ class BeamSpot(object):
         
         date_start = datetime.datetime.utcfromtimestamp(self.IOVBeginTime)
         date_end   = datetime.datetime.utcfromtimestamp(self.IOVEndTime  )
-        
-        #import pdb ; pdb.set_trace()
-        
+                
         str_date_start = '%d.%02d.%02d %02d:%02d:%02d' %( date_start.year   ,
                                                           date_start.month  ,
                                                           date_start.day    ,
@@ -66,29 +64,29 @@ class BeamSpot(object):
                                                           date_end.minute ,
                                                           date_end.second )
         
-        towrite = 'Runnumber {RUN}\n'                                  \
-                  'BeginTimeOfFit {DATESTART} GMT {TIMESTART}\n'       \
-                  'EndTimeOfFit {DATEEND} GMT {TIMEEND}\n'             \
-                  'LumiRange {LUMISTART} - {LUMIEND}\n'                \
-                  'Type {TYPE}\n'                                      \
-                  'X0 {X0}\n'                                          \
-                  'Y0 {Y0}\n'                                          \
-                  'Z0 {Z0}\n'                                          \
-                  'sigmaZ0 {SZ0}\n'                                    \
-                  'dxdz {DXDZ}\n'                                      \
-                  'dydz {DYDZ}\n'                                      \
-                  'BeamWidthX {BWX}\n'                                 \
-                  'BeamWidthY {BWY}\n'                                 \
-                  'Cov(0,j) {M00} {M01} 0 0 0 0 0 \n'                  \
-                  'Cov(1,j) {M10} {M11} 0 0 0 0 0 \n'                  \
-                  'Cov(2,j) 0 0 {M22} 0 0 0 0 \n'                      \
-                  'Cov(3,j) 0 0 0 {M33} 0 0 0 \n'                      \
-                  'Cov(4,j) 0 0 0 0 {M44} {M45} 0 \n'                  \
-                  'Cov(5,j) 0 0 0 0 {M54} {M55} 0 \n'                  \
-                  'Cov(6,j) 0 0 0 0 0 0 {M66} \n'                      \
-                  'EmittanceX {EMX}\n'                                 \
-                  'EmittanceY {EMY}\n'                                 \
-                  'BetaStar {BSTAR}\n'                                 \
+        towrite = 'Runnumber {RUN}\n'                           \
+                  'BeginTimeOfFit {DATESTART} GMT {TIMESTART}\n'\
+                  'EndTimeOfFit {DATEEND} GMT {TIMEEND}\n'      \
+                  'LumiRange {LUMISTART} - {LUMIEND}\n'         \
+                  'Type {TYPE}\n'                               \
+                  'X0 {X0}\n'                                   \
+                  'Y0 {Y0}\n'                                   \
+                  'Z0 {Z0}\n'                                   \
+                  'sigmaZ0 {SZ0}\n'                             \
+                  'dxdz {DXDZ}\n'                               \
+                  'dydz {DYDZ}\n'                               \
+                  'BeamWidthX {BWX}\n'                          \
+                  'BeamWidthY {BWY}\n'                          \
+                  'Cov(0,j) {M00} {M01} 0 0 0 0 0 \n'           \
+                  'Cov(1,j) {M10} {M11} 0 0 0 0 0 \n'           \
+                  'Cov(2,j) 0 0 {M22} 0 0 0 0 \n'               \
+                  'Cov(3,j) 0 0 0 {M33} 0 0 0 \n'               \
+                  'Cov(4,j) 0 0 0 0 {M44} {M45} 0 \n'           \
+                  'Cov(5,j) 0 0 0 0 {M54} {M55} 0 \n'           \
+                  'Cov(6,j) 0 0 0 0 0 0 {M66} \n'               \
+                  'EmittanceX {EMX}\n'                          \
+                  'EmittanceY {EMY}\n'                          \
+                  'BetaStar {BSTAR}\n'                          \
                   ''.format(RUN       = str(self.Run          ),
                             DATESTART = str(str_date_start    ),
                             TIMESTART = str(self.IOVBeginTime ),

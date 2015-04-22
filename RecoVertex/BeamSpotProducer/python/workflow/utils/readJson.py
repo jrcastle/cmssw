@@ -1,13 +1,14 @@
 #!/usr/bin/python
 
 import sys
+from RecoVertex.BeamSpotProducer.workflow.utils.unpackList import unpackList
 
 if sys.version_info < (2,6,0):
     import json
 else:
     import simplejson as json
 
-def readJson(firstRun = -1, fileName = ''):
+def readJson(firstRun = -1, fileName = '', packed = True):
     '''
     Reads the json <fileName> file and casts the run 
     number from string to integer.
@@ -27,7 +28,11 @@ def readJson(firstRun = -1, fileName = ''):
             
     selected_dcs = {int(k):v for k, v in jsonList.items() if int(k) >= firstRun}
     
-    return selected_dcs
+    if packed: 
+        return selected_dcs
+    else:
+        return unpackList(selected_dcs)
+
 
 if __name__ == '__main__':
     myjson = readJson(194000, 
