@@ -411,29 +411,6 @@ class BeamSpotWorkflow(object):
         # it is such a mess.
         #
         # HSL
-
-
-
-        self.logger.info('Sorting and cleaning beamlist')
-        beamSpotObjList = []
-        for fileName in copiedFiles:
-            readBeamSpotFile(self.workingDir + fileName,
-                             beamSpotObjList           ,
-                             self.fileIOVBase)
-
-        sortAndCleanBeamList(beamSpotObjList, self.fileIOVBase)
-
-        if len(beamSpotObjList) == 0:
-            self.logger.warning(warning_no_valid_fit())
-
-        runBased = False
-        if self.dbIOVBase == 'runnumber':
-            runBased = True
-
-        payloadList = createWeightedPayloads(self.workingDir + self.payloadFileName,
-                                             beamSpotObjList, runBased)
-        if len(payloadList) == 0:
-            self.logger.warning(warning_unable_to_create_payload())
                 
         if hasattr(self, 'locker'):
             self.locker.unlock()
