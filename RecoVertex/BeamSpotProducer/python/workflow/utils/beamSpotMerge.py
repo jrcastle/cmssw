@@ -24,6 +24,7 @@ def averageBeamSpot(bslist):
     firstBS = bslist[0 ]
     lastBS  = bslist[-1]
     
+    # instantiate a new, empty Beam Spot object that will store the averages
     averageBS = BeamSpot()
         
     # weighed average of the position
@@ -39,7 +40,9 @@ def averageBeamSpot(bslist):
     averageBS.beamWidthX, averageBS.beamWidthXerr = average( [bs.beamWidthX for bs in bslist], weights = [1./max(1e-22, bs.beamWidthXerr * bs.beamWidthXerr ) for bs in bslist], returned = True )
     averageBS.beamWidthY, averageBS.beamWidthYerr = average( [bs.beamWidthY for bs in bslist], weights = [1./max(1e-22, bs.beamWidthYerr * bs.beamWidthYerr ) for bs in bslist], returned = True )
 
-    # this sucks, I know
+    # RIC: this sucks, I know
+    # BTW I cannot reproduce the old results, as far as errors go,
+    # for run 195660, whereas I can find the correct X, Y, Z position.
     averageBS.Xerr          = 1./sqrt(averageBS.Xerr         )
     averageBS.Yerr          = 1./sqrt(averageBS.Yerr         ) 
     averageBS.Zerr          = 1./sqrt(averageBS.Zerr         ) 
@@ -49,7 +52,7 @@ def averageBeamSpot(bslist):
     averageBS.beamWidthXerr = 1./sqrt(averageBS.beamWidthXerr) 
     averageBS.beamWidthYerr = 1./sqrt(averageBS.beamWidthYerr) 
 
-    # assuming that ls are contiguous in the list given
+    # assuming that ls are contiguous in the list given.
     averageBS.IOVfirst      = firstBS.IOVfirst    
     averageBS.IOVlast       = lastBS .IOVlast     
     averageBS.IOVBeginTime  = firstBS.IOVBeginTime

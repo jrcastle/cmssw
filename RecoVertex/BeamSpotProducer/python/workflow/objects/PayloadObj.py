@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from math import sqrt
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 
 class Payload(object):
@@ -83,14 +84,14 @@ class Payload(object):
             
             # covariance matrix defined here
             # https://github.com/MilanoBicocca-pix/cmssw/blob/CMSSW_7_5_X_beamspot_workflow_riccardo/RecoVertex/BeamSpotProducer/src/PVFitter.cc#L306
-            # diagonal terms
-            bs.Xerr          = float( v[13].split()[1] )
-            bs.Yerr          = float( v[14].split()[2] )
-            bs.Zerr          = float( v[15].split()[3] )
-            bs.sigmaZerr     = float( v[16].split()[4] )
-            bs.dxdzerr       = float( v[17].split()[5] )
-            bs.dydzerr       = float( v[18].split()[6] )
-            bs.beamWidthXerr = float( v[19].split()[7] )
+            # diagonal terms 
+            bs.Xerr          = sqrt( float(v[13].split()[1]) )
+            bs.Yerr          = sqrt( float(v[14].split()[2]) )
+            bs.Zerr          = sqrt( float(v[15].split()[3]) )
+            bs.sigmaZerr     = sqrt( float(v[16].split()[4]) )
+            bs.dxdzerr       = sqrt( float(v[17].split()[5]) )
+            bs.dydzerr       = sqrt( float(v[18].split()[6]) )
+            bs.beamWidthXerr = sqrt( float(v[19].split()[7]) )
             # bs.beamWidthYerr = float( v[16].split()[1] ) # not in cov matrix!
             # off diagonal terms
             bs.XYerr         = float( v[13].split()[2] )
