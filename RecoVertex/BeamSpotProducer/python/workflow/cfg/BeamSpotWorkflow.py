@@ -1,25 +1,11 @@
 #!/usr/bin/python
 
-from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotWorkflowObj import BeamSpotWorkflow
 from optparse import OptionParser
-import sys
-
-
+from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotWorkflowObj import BeamSpotWorkflow
+from RecoVertex.BeamSpotProducer.workflow.utils.initLogger            import initLogger
+ 
 '''
    BeamSpotWorkflow.py
-
-   A very complicate script to upload the results into the DB
-
-   usage: %prog -d <data file/directory> -t <tag name>
-   -c, --cfg = CFGFILE : Use a different configuration file than the default
-   -l, --lock = LOCK   : Create a lock file to have just one script running
-   -o, --overwrite     : Overwrite results files when copying.
-   -T, --Test          : Upload files to Test dropbox for data validation.
-   -u, --upload        : Upload files to offline drop box via scp.
-   -z, --zlarge        : Enlarge sigmaZ to 10 +/- 0.005 cm.
-
-   N.B. You will need to set up a CRAB environment and initialize a vali grid proxy
-
 '''
 
 parser = OptionParser()
@@ -37,11 +23,14 @@ parser.add_option('-z', '--zlarge'   ,  dest = 'zlarge'   , help = 'Enlarge sigm
 # imports the cfg, named cfg from here
 execfile(options.cfg) 
 
+logger = initLogger(emails = cfg.mailList)
+
 bswf = BeamSpotWorkflow( 
                          cfg       = cfg              ,
                          lock      = options.lock     ,
                          overwrite = options.overwrite,
                          globaltag = options.tag      ,
+                         logger    = logger
                        )
 
 bswf.process()

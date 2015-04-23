@@ -46,7 +46,6 @@ class BeamSpotWorkflow(object):
         self.jsonFileName          = cfg.jsonFileName
         self.mailList              = cfg.mailList
         self.payloadFileName       = cfg.payloadFileName
-
         
         if lock: 
             self._checkIfAlreadyRunning()
@@ -236,9 +235,9 @@ class BeamSpotWorkflow(object):
 
 
         ######### Check the last IOV from querying the COND DB
-        #lastUploadedIOV = getLastUploadedIOV(self.databaseTag, 
-        #                                     self.tagName    ,
-        #                                     self.logger     )
+        lastUploadedIOV = getLastUploadedIOV(self.databaseTag, 
+                                             self.tagName    ,
+                                             self.logger     )
         
         # RIC: just for testing
         lastUploadedIOV = 194000
@@ -370,41 +369,29 @@ class BeamSpotWorkflow(object):
         # aveBeamSpot = averageBeamSpot(runsLumisBSCRAB.values()[0].values())    
         # aveBeamSpot.Dump('Payload_tot.txt')
         
-        aveBeamSpot = averageBeamSpot(bslist_1_50   ) 
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_51_67  )
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_68_105 )
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_106_109)
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_110_134)
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_135_153)
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_161_182)
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_183_186)
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_193_201)
-        aveBeamSpot.Dump('Payload_tot.txt')
-        aveBeamSpot = averageBeamSpot(bslist_202_220)       
-        aveBeamSpot.Dump('Payload_tot.txt')
+        for lsrange in [bslist_1_50   , bslist_51_67  , 
+                        bslist_68_105 , bslist_106_109,
+                        bslist_110_134, bslist_135_153, 
+                        bslist_161_182, bslist_183_186,
+                        bslist_193_201, bslist_202_220]:
+            aveBeamSpot = averageBeamSpot(lsrange) 
+            aveBeamSpot.Dump(self.payloadFileName)
                 
         if hasattr(self, 'locker'):
             self.locker.unlock()
+
         
 
 if __name__ == '__main__':
 
-    from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotWorkflowCfgObj import BeamSpotWorkflowCfg
+    from RecoVertex.BeamSpotProducer.workflow.utils.initLogger            import initLogger
     
-    cfg = BeamSpotWorkflowCfg()
+    cfg = object()
     
-    cfg.sourceDir             = '../Runs2012B_FULL/Results/'
-    cfg.archiveDir            = '../Runs2012B_FULL/Archive/'
-    cfg.workingDir            = '../Runs2012B_FULL/Working/'
-    cfg.jsonFileName          = '../beamspot_payload_2012BONLY_merged_JSON_all.txt'
+    cfg.sourceDir             = 'Runs2012B_FULL/Results/'
+    cfg.archiveDir            = 'Runs2012B_FULL/Archive/'
+    cfg.workingDir            = 'Runs2012B_FULL/Working/'
+    cfg.jsonFileName          = 'beamspot_payload_2012BONLY_merged_JSON_all.txt'
     cfg.databaseTag           = 'BeamSpotObjects_2009_LumiBased_SigmaZ_v29_offline'
     cfg.dataSet               = '/StreamExpress/Run2012B-TkAlMinBias-v1/ALCARECO'
     cfg.fileIOVBase           = 'lumibase'
@@ -417,10 +404,14 @@ if __name__ == '__main__':
     cfg.mailList              = 'manzoni@cern.ch'
     cfg.payloadFileName       = 'PayloadFile.txt'
 
+    logger = initLogger(emails = cfg.mailList)
+    
     bswf = BeamSpotWorkflow( 
-                            cfg       = cfg                  ,
-                            lock      = options.lock         ,
-                            overwrite = options.overwrite    ,
+                             cfg       = cfg              ,
+                             lock      = options.lock     ,
+                             overwrite = options.overwrite,
+                             globaltag = options.tag      ,
+                             logger    = logger
                            )
 
     bswf.process()

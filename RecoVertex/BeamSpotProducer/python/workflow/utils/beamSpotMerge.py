@@ -4,9 +4,21 @@ from math import sqrt
 from numpy import average
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 
+
+def splitByDrift(fullList, maxDriftX, maxDriftY, maxDriftZ):
+    '''
+    Group lumi sections where the Beam Spot position does not 
+    drift beyond the parameters specified by the user.
+    If the drift in any direction exceeds the boundaries,
+    split the lumi section collection.
+    Returns a list of lumi section ranges.
+    '''
+    # RIC: to be implemented FIXME!
+    pass
+
 def averageBeamSpot(bslist):
     '''
-    Returns a Beam Spot object contained the weighed average position
+    Returns a Beam Spot object containing the weighed average position
     of the Beam Spots in the list.
     
     Start and end time and lumi section are taken from the first and 
@@ -28,35 +40,33 @@ def averageBeamSpot(bslist):
     averageBS = BeamSpot()
         
     # weighed average of the position
-    # FIXME! RIC: in the past it seems to me that they used bs.Xerr *squared*
-    #             as weight, which means the error at the fourth power.
-    #             Quirky...
-    averageBS.X         , averageBS.Xerr          = average( [bs.X          for bs in bslist], weights = [1./max(1e-22, bs.Xerr          * bs.Xerr          ) for bs in bslist], returned = True )
-    averageBS.Y         , averageBS.Yerr          = average( [bs.Y          for bs in bslist], weights = [1./max(1e-22, bs.Yerr          * bs.Yerr          ) for bs in bslist], returned = True )
-    averageBS.Z         , averageBS.Zerr          = average( [bs.Z          for bs in bslist], weights = [1./max(1e-22, bs.Zerr          * bs.Zerr          ) for bs in bslist], returned = True )
-    averageBS.sigmaZ    , averageBS.sigmaZerr     = average( [bs.sigmaZ     for bs in bslist], weights = [1./max(1e-22, bs.sigmaZerr     * bs.sigmaZerr     ) for bs in bslist], returned = True )
-    averageBS.dxdz      , averageBS.dxdzerr       = average( [bs.dxdz       for bs in bslist], weights = [1./max(1e-22, bs.dxdzerr       * bs.dxdzerr       ) for bs in bslist], returned = True )
-    averageBS.dydz      , averageBS.dydzerr       = average( [bs.dydz       for bs in bslist], weights = [1./max(1e-22, bs.dydzerr       * bs.dydzerr       ) for bs in bslist], returned = True )
-    averageBS.beamWidthX, averageBS.beamWidthXerr = average( [bs.beamWidthX for bs in bslist], weights = [1./max(1e-22, bs.beamWidthXerr * bs.beamWidthXerr ) for bs in bslist], returned = True )
-    averageBS.beamWidthY, averageBS.beamWidthYerr = average( [bs.beamWidthY for bs in bslist], weights = [1./max(1e-22, bs.beamWidthYerr * bs.beamWidthYerr ) for bs in bslist], returned = True )
+    # if you want to average additional quantities
+    # just add a pair (quantity, its error) to the list of pairs    
+    for pair in [('X'         ,'Xerr'         ),
+                 ('Y'         ,'Yerr'         ),
+                 ('Z'         ,'Zerr'         ),
+                 ('sigmaZ'    ,'sigmaZerr'    ),
+                 ('dxdz'      ,'dxdzerr'      ),
+                 ('dydz'      ,'dydzerr'      ),
+                 ('beamWidthX','beamWidthXerr'),
+                 ('beamWidthY','beamWidthYerr')]:
+    
+        value = lambda x: getattr(x, pair[0])
+        error = lambda x: 1./max(1e-22, 
+                                 getattr(x, pair[1]) * getattr(x, pair[1]))
+    
+        ave_value, ave_error = average(a        = [value(bs) for bs in bslist],
+                                       weights  = [error(bs) for bs in bslist],
+                                       returned = True                        )
 
-    # RIC: this sucks, I know
-    # BTW I cannot reproduce the old results, as far as errors go,
-    # for run 195660, whereas I can find the correct X, Y, Z position.
-    averageBS.Xerr          = 1./sqrt(averageBS.Xerr         )
-    averageBS.Yerr          = 1./sqrt(averageBS.Yerr         ) 
-    averageBS.Zerr          = 1./sqrt(averageBS.Zerr         ) 
-    averageBS.sigmaZerr     = 1./sqrt(averageBS.sigmaZerr    ) 
-    averageBS.dxdzerr       = 1./sqrt(averageBS.dxdzerr      ) 
-    averageBS.dydzerr       = 1./sqrt(averageBS.dydzerr      ) 
-    averageBS.beamWidthXerr = 1./sqrt(averageBS.beamWidthXerr) 
-    averageBS.beamWidthYerr = 1./sqrt(averageBS.beamWidthYerr) 
-
+        setattr(averageBS, pair[0], ave_value         )
+        setattr(averageBS, pair[1], 1./sqrt(ave_error))
+    
     # assuming that ls are contiguous in the list given.
-    averageBS.IOVfirst      = firstBS.IOVfirst    
-    averageBS.IOVlast       = lastBS .IOVlast     
-    averageBS.IOVBeginTime  = firstBS.IOVBeginTime
-    averageBS.IOVEndTime    = lastBS .IOVEndTime  
+    averageBS.IOVfirst     = firstBS.IOVfirst    
+    averageBS.IOVlast      = lastBS .IOVlast     
+    averageBS.IOVBeginTime = firstBS.IOVBeginTime
+    averageBS.IOVEndTime   = lastBS .IOVEndTime  
 
     # check that these attributes are the same for all BS in the list.    
     for attr in ('Type', 'Run', 'EmittanceX', 'EmittanceY', 'betastar'):
@@ -67,11 +77,11 @@ def averageBeamSpot(bslist):
                       %(attr, i)
                 exit()
   
-    averageBS.Type          = firstBS.Type        
-    averageBS.Run           = firstBS.Run         
-    averageBS.EmittanceX    = firstBS.EmittanceX  
-    averageBS.EmittanceY    = firstBS.EmittanceY  
-    averageBS.betastar      = firstBS.betastar    
+    averageBS.Type       = firstBS.Type        
+    averageBS.Run        = firstBS.Run         
+    averageBS.EmittanceX = firstBS.EmittanceX  
+    averageBS.EmittanceY = firstBS.EmittanceY  
+    averageBS.betastar   = firstBS.betastar    
 
     return averageBS
 
