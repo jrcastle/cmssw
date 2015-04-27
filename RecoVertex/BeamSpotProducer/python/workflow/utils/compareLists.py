@@ -41,8 +41,8 @@ def compareLists(listA, listB, tolerance = 0,
                                    LENB = len(setB),
                                    B    = listBName))
 
-    in_A_not_in_B = setA - setB        
-    in_B_not_in_A = setB - setA        
+    in_A_not_in_B = sorted(list(setA - setB))  
+    in_B_not_in_A = sorted(list(setB - setA))      
     
     for ele in in_A_not_in_B:
         if logger and verbose: 

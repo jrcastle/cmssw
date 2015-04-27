@@ -13,16 +13,23 @@ else:
 
 
 def ranges(i):
+    '''
+    Unpacks a list of ranges into a fully extended list, e.g.:
+    [ [1,3], [6,10] ] ==> [1, 2, 3, 6, 7, 8, 9, 10] 
+    '''
     for a, b in itertools.groupby(enumerate(i), lambda (x, y): y - x):
         b = list(b)
         yield b[0][1], b[-1][1]
 
-def getNumberOfFilesToProcessForRun(api, dataset, run):
+def getFilesToProcessForRun(api, dataset, run):
+    '''
+    Returns the list of files present in DBS for a given run.
+    '''
     run = int(run)
-    return len(api.listFiles(dataset = dataset, run_num = run))
+    files = api.listFiles(dataset = dataset, run_num = run) 
+    return files
     
 def getJsonOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, logger = None):
-    
     '''
     Queries the DBS for the runs and lumi sections for the dataset <dataSet>
     and run number >= <lastRun>.
@@ -31,8 +38,7 @@ def getJsonOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1, logger = None):
             Run : [lumi_1, lumi_2, ...]
             ...
         }
-    '''
-    
+    '''    
     datasetList    = dataSet.split(',')
     outputFileList = []
     runsAndLumis   = {}
@@ -77,7 +83,6 @@ def getListOfRunsAndLumiFromDBS(api, dataSet, lastRun = -1,
     {194116 : [[2,5], [15,18]]}               if packed
     {194116 : [2, 3, 4, 5, 15, 16, 17, 18]}   if not packed
     '''
-    
     runsAndLumisJson = getJsonOfRunsAndLumiFromDBS(api    ,
                                                    dataSet, 
                                                    lastRun,
