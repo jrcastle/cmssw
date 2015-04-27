@@ -16,6 +16,7 @@ from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands import getLastUpl
 from RecoVertex.BeamSpotProducer.workflow.utils.compareLists   import compareLists
 from RecoVertex.BeamSpotProducer.workflow.utils.timeoutManager import timeoutManager 
 from RecoVertex.BeamSpotProducer.workflow.utils.beamSpotMerge  import averageBeamSpot
+from RecoVertex.BeamSpotProducer.workflow.utils.beamSpotMerge  import splitByDrift
     
 class BeamSpotWorkflow(object):
     '''
@@ -348,34 +349,60 @@ class BeamSpotWorkflow(object):
                 self.logger.warning('All JSON lumis have been processed , '\
                                     'but some DBS lumis are not. '         \
                                     'Fine, moving on') 
+        
+        
+        # for later debugging
+#         import pickle
+#         pickle.dump(runsLumisBSCRAB, open('runsLumisBSCRAB.pck', 'w+') )
+        
+        
+        for run, lumis in runsLumisBSCRAB.items():
+            
+            # get start and end lumi, for lumi ranges where the 
+            # beam spot coordinates are similar enough to 
+            # be merged and averaged
+            pairs = splitByDrift(lumis)
+            
+            bs_list = [ bs_dict[i] for i in range(p[0], p[1] + 1) ]
+            aveBeamSpot = averageBeamSpot(bs_list)
+            aveBeamSpot.Dump(self.payloadFileName)
+
+            
+            
+#             import pdb ; pdb.set_trace()
+            
+        # RIC: for each RUN pass the dictionary of LUMI : BeamSpotObj
+        # splitByDrift(runsLumisBSCRAB.values()[0])
+        
             
         # FIXME! RIC: here we'd need to check the BS slow drift
         #             and sub divide the beam spot list into smaller 
         #             chunks to be fed into averageBeamSpot().
         #             Can be externalised to another function.
         
-        bslist_1_50    = runsLumisBSCRAB.values()[0].values()[0   : 50 ]
-        bslist_51_67   = runsLumisBSCRAB.values()[0].values()[50  : 67 ]
-        bslist_68_105  = runsLumisBSCRAB.values()[0].values()[67  : 105]
-        bslist_106_109 = runsLumisBSCRAB.values()[0].values()[105 : 109]
-        bslist_110_134 = runsLumisBSCRAB.values()[0].values()[109 : 134]
-        bslist_135_153 = runsLumisBSCRAB.values()[0].values()[134 : 160]
-        bslist_161_182 = runsLumisBSCRAB.values()[0].values()[160 : 182]
-        bslist_183_186 = runsLumisBSCRAB.values()[0].values()[182 : 192]
-        bslist_193_201 = runsLumisBSCRAB.values()[0].values()[192 : 201]
-        bslist_202_220 = runsLumisBSCRAB.values()[0].values()[201 : 220]
+        # [1, 62, 110, 120, 135, 150, 160, 161, 184, 193]
+#         bslist_1_50    = runsLumisBSCRAB.values()[0].values()[0   : 50 ]
+#         bslist_51_67   = runsLumisBSCRAB.values()[0].values()[50  : 67 ]
+#         bslist_68_105  = runsLumisBSCRAB.values()[0].values()[67  : 105]
+#         bslist_106_109 = runsLumisBSCRAB.values()[0].values()[105 : 109]
+#         bslist_110_134 = runsLumisBSCRAB.values()[0].values()[109 : 134]
+#         bslist_135_153 = runsLumisBSCRAB.values()[0].values()[134 : 160]
+#         bslist_161_182 = runsLumisBSCRAB.values()[0].values()[160 : 182]
+#         bslist_183_186 = runsLumisBSCRAB.values()[0].values()[182 : 192]
+#         bslist_193_201 = runsLumisBSCRAB.values()[0].values()[192 : 201]
+#         bslist_202_220 = runsLumisBSCRAB.values()[0].values()[201 : 220]
             
         # just for testing, for now, merging the entire run 195660
         # aveBeamSpot = averageBeamSpot(runsLumisBSCRAB.values()[0].values())    
         # aveBeamSpot.Dump('Payload_tot.txt')
         
-        for lsrange in [bslist_1_50   , bslist_51_67  , 
-                        bslist_68_105 , bslist_106_109,
-                        bslist_110_134, bslist_135_153, 
-                        bslist_161_182, bslist_183_186,
-                        bslist_193_201, bslist_202_220]:
-            aveBeamSpot = averageBeamSpot(lsrange) 
-            aveBeamSpot.Dump(self.payloadFileName)
+#         for lsrange in [bslist_1_50   , bslist_51_67  , 
+#                         bslist_68_105 , bslist_106_109,
+#                         bslist_110_134, bslist_135_153, 
+#                         bslist_161_182, bslist_183_186,
+#                         bslist_193_201, bslist_202_220]:
+#             aveBeamSpot = averageBeamSpot(lsrange) 
+#             aveBeamSpot.Dump(self.payloadFileName)
                 
         if hasattr(self, 'locker'):
             self.locker.unlock()

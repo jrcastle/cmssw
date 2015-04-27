@@ -1,21 +1,203 @@
 #!/usr/bin/python
 
-from math import sqrt
+from math import sqrt, pow
 from numpy import average
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 
+def delta(x, xe, y, ye):
+    '''
+    Returns the distance between x and y and, its error 
+    and its significance.
+    Order matters, x first, y second.
+    Gives the sign of the difference.
+    '''
+    delta        = x - y
+    deltaErr     = sqrt(pow(xe, 2) + pow(ye,2))
+    significance = 0.   
+    
+    # protect against divisions by 0.
+    if delta:
+        significance = abs(delta) / max(1e-6 * abs(delta), deltaErr)
 
-def splitByDrift(fullList, maxDriftX, maxDriftY, maxDriftZ):
+    return delta, deltaErr, significance
+
+def splitByDrift(fullList, maxLumi = 60):
     '''
     Group lumi sections where the Beam Spot position does not 
     drift beyond the parameters specified by the user.
     If the drift in any direction exceeds the boundaries,
     split the lumi section collection.
     Returns a list of lumi section ranges.
+    
+    The lumi list is anyways split in chunks of at most 
+    maxLumi lumi sections. Default = 60.
+    
+    The lumi section where the fit hasn't converged properly
+    are excluded (Type > 0 is required).
+    
+    Make sure the lumi sections are sorted.
     '''
-    # RIC: to be implemented FIXME!
-    pass
+    
+    # Clean up badly converged fits
+    fullList = { lumi:bs for lumi, bs in fullList.items() if bs.Type > 0 }
+    
+    # breaking points. 
+    # First LS is the first starting point by definition
+    breaks = [fullList.keys()[0]]
+        
+    # lumi counter
+    i = 0
+    
+    # check the beam spot position against the one before 
+    # and the one after.
+    # Reset every maxLumi lumi sections or at every drift
+    for j in range( 1, len(fullList.items())-1 ):
+        
+        lumi        = fullList.keys()[j  ]
+        lumi_before = fullList.keys()[j-1]
+        lumi_after  = fullList.keys()[j+1]
 
+        bs        = fullList[lumi       ]  # bs        is the current beam spot
+        bs_before = fullList[lumi_before]  # bs_before is the previous
+        bs_after  = fullList[lumi_after ]  # bs_after  is the next
+        
+        i += 1
+
+        # variables are constructed as follows:
+        # (variable, its error, resolution (if any), 
+        #  minimum drift, drift significance,
+        #  full drift check, partial drift check)
+        #
+        # this mess is inherited from the old code...
+        
+        variables = [
+            ('X'         , 'Xerr'      , 'beamWidthX', 0.0025, 3.5, True , True ),
+            ('Y'         , 'Yerr'      , 'beamWidthY', 0.0025, 3.5, True , True ),
+            ('Z'         , 'Zerr'      , 'sigmaZ'    , 0.    , 3.5, False, False),
+            ('dxdz'      , 'dxdzerr'   , ''          , 0.    , 5. , False, True ),
+            ('dydz'      , 'dydzerr'   , ''          , 0.    , 5. , False, True ),
+            ('sigmaZ'    , 'sigmaZerr' , ''          , 0.    , 5. , False, False),
+            ('beamWidthX', 'beamWidthX', ''          , 0.    , 5. , False, True ),
+            ('beamWidthY', 'beamWidthY', ''          , 0.    , 5. , False, True ),
+        ]
+        
+        for variable in variables:
+            
+            x  = getattr(bs       , variable[0])
+            y  = getattr(bs_before, variable[0])
+            z  = getattr(bs_after , variable[0])
+            
+            xe = getattr(bs       , variable[1])
+            ye = getattr(bs_before, variable[1])
+            ze = getattr(bs_after , variable[1])
+            
+            try:
+                minDeviation = max(getattr(bs, variable[2])/2., variable[3])
+            except:
+                minDeviation = variable[3]
+            
+            minSignificance = variable[4] 
+             
+            drifted = drift(x, xe, y, ye, z, ze,
+                            minDeviation, minSignificance,
+                            checkTrendsFull = variable[5],
+                            checkTrendsPartial = variable[6])
+            
+            if drifted or i >= maxLumi:
+                breaks.append(lumi_before)  # append ending lumi
+                breaks.append(lumi)         # append starting lumi
+                i = 0                       # reset lumi counter
+                break
+
+    # Last LS is the first breaking point by definition
+    breaks.append(fullList.keys()[-1])
+
+    # make sure there's no repeated breaking points
+    # and sort the list
+    breaks = sorted(list(set(breaks)))
+    
+    pairs = []
+    
+    # create start, end pairs
+    for b in range(0, len(breaks), 2):
+        pairs.append( (breaks[b], breaks[b+1]) )
+    
+    return pairs
+
+def drift(x, xe, y, ye, z, ze, minDeviation = 0., 
+          minSig = 3.5, checkTrendsFull = True, 
+          checkTrendsPartial = True):
+    '''
+    What a Beam Spot "drift" is is defined here.
+    Takes the two quantities to compute the difference of, x and y,
+    and their errors, xe and ye.
+    
+    The minimum absolute difference between x and y can be
+    specified by minDeviation, as well as the minimum (L / sigma),
+    specified by minSigma, beyond which a drift is detected.
+    
+    default: minDeviation = 0.
+    default: minSig = 0.
+    '''
+    # mind the order, this is a signed difference        
+    diff_to_pre , err_to_pre , sig_to_pre  = delta(x, xe, y, ye)
+    diff_to_post, err_to_post, sig_to_post = delta(x, xe, z, ze)
+    
+    # simple drift, significant deviation from
+    # one lumi section to another
+    drifted = sig_to_pre > minSig and abs(diff_to_pre) >= minDeviation 
+
+    # maybe the drift before in not very significant,
+    # but there is a trend
+    #
+    # lumi section
+    # ^
+    # |--                          bs_after         
+    # |                           *|
+    # |                          * |
+    # |                         *  |
+    # |                        *   |
+    # |--                    bs    |               
+    # |                     * |    |  
+    # |                  *    |    |
+    # |               *       |    |
+    # |            *          |    | 
+    # |-- bs_before|          |    |               
+    # |____________|__________|____|___________ position
+    # |            |               |    
+    #               combined diff > limit    
+    if not drifted and checkTrendsFull:
+        if diff_to_pre * diff_to_post < 0                   and \
+           abs(diff_to_pre) + abs(diff_to_post) >= minDeviation :
+            drifted = True
+
+    # maybe it looks like a drift but at the following LS
+    # it goes back    
+    #
+    # lumi section
+    # ^
+    # |--        bs_after         
+    # |                 | *
+    # |                 |  * 
+    # |                 |   *
+    # |                 |    * 
+    # |--               |     bs     
+    # |                 |   * |
+    # |                  *    |
+    # |               * |     |
+    # |            *    |     |
+    # |-- bs_before|    |     |     
+    # |____________|____|_____|________________ position
+    # |            |    |     |          
+    elif drifted and checkTrendsPartial:
+        if diff_to_pre * diff_to_post >= 0         and \
+           diff_to_post != 0.                      and \
+           abs(diff_to_pre / diff_to_post) > 1./3. and \
+           abs(diff_to_pre / diff_to_post) < 3.        :
+            drifted = False
+
+    return drifted    
+    
 def averageBeamSpot(bslist):
     '''
     Returns a Beam Spot object containing the weighed average position
@@ -31,7 +213,7 @@ def averageBeamSpot(bslist):
     #      Add some logging. 
 
     bslist = [bs for bs in bslist if bs.Type > 0]
-
+        
     # get the first and the last BS in the list
     firstBS = bslist[0 ]
     lastBS  = bslist[-1]
@@ -41,7 +223,7 @@ def averageBeamSpot(bslist):
         
     # weighed average of the position
     # if you want to average additional quantities
-    # just add a pair (quantity, its error) to the list of pairs    
+    # just add a variable (quantity, its error) to the list of pairs    
     for pair in [('X'         ,'Xerr'         ),
                  ('Y'         ,'Yerr'         ),
                  ('Z'         ,'Zerr'         ),
@@ -50,7 +232,6 @@ def averageBeamSpot(bslist):
                  ('dydz'      ,'dydzerr'      ),
                  ('beamWidthX','beamWidthXerr'),
                  ('beamWidthY','beamWidthYerr')]:
-    
         value = lambda x: getattr(x, pair[0])
         error = lambda x: 1./max(1e-22, 
                                  getattr(x, pair[1]) * getattr(x, pair[1]))
@@ -76,12 +257,8 @@ def averageBeamSpot(bslist):
                       'Beam Spot collection varies from the first'\
                       %(attr, i)
                 exit()
-  
-    averageBS.Type       = firstBS.Type        
-    averageBS.Run        = firstBS.Run         
-    averageBS.EmittanceX = firstBS.EmittanceX  
-    averageBS.EmittanceY = firstBS.EmittanceY  
-    averageBS.betastar   = firstBS.betastar    
+        
+        setattr(averageBS, attr, getattr(firstBS, attr) )
 
     return averageBS
 
