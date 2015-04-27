@@ -612,97 +612,167 @@ def createWeightedPayloads(fileName,listbeam=[],weighted=True, logger=None):
             if limit < min_limit: limit = min_limit
             
             # check movements in X
-            adelta1 = delta(ibeam.X, ibeam.Xerr, inextbeam.X, inextbeam.Xerr)
-            adelta2 = (0.,1.e9)
-            adelta1dxdz = delta(ibeam.dxdz, ibeam.dxdzerr, inextbeam.dxdz, inextbeam.dxdzerr)
-            adelta2dxdz = (0.,1.e9)
-            adelta1dydz = delta(ibeam.dydz, ibeam.dydzerr, inextbeam.dydz, inextbeam.dydzerr)
-            adelta2dydz = (0.,1.e9)
+            
+            adelta1       = delta(ibeam.X         , ibeam.Xerr         , inextbeam.X         , inextbeam.Xerr         )
+            adelta1dxdz   = delta(ibeam.dxdz      , ibeam.dxdzerr      , inextbeam.dxdz      , inextbeam.dxdzerr      )
+            adelta1dydz   = delta(ibeam.dydz      , ibeam.dydzerr      , inextbeam.dydz      , inextbeam.dydzerr      )
             adelta1widthx = delta(ibeam.beamWidthX, ibeam.beamWidthXerr, inextbeam.beamWidthX, inextbeam.beamWidthXerr)
-            adelta2widthx = (0.,1.e9)
             adelta1widthy = delta(ibeam.beamWidthY, ibeam.beamWidthYerr, inextbeam.beamWidthY, inextbeam.beamWidthYerr)
+            adelta1z0     = delta(ibeam.Z         , ibeam.Zerr         , inextbeam.Z         , inextbeam.Zerr         )
+            adelta1sigmaZ = delta(ibeam.sigmaZ    , ibeam.sigmaZerr    , inextbeam.sigmaZ    , inextbeam.sigmaZerr    )
+
+
+            adelta2       = (0.,1.e9)            
+            adelta2dxdz   = (0.,1.e9)
+            adelta2dydz   = (0.,1.e9)
+            adelta2widthx = (0.,1.e9)
             adelta2widthy = (0.,1.e9)
-            adelta1z0 = delta(ibeam.Z, ibeam.Zerr, inextbeam.Z, inextbeam.Zerr)
-            adelta1sigmaZ = delta(ibeam.sigmaZ, ibeam.sigmaZerr, inextbeam.sigmaZ, inextbeam.sigmaZerr)
+            
             
             if iNNbeam.Type != -1:
-                adelta2 = delta(inextbeam.X, inextbeam.Xerr, iNNbeam.X, iNNbeam.Xerr)
-                adelta2dxdz = delta(inextbeam.dxdz, inextbeam.dxdzerr, iNNbeam.dxdz, iNNbeam.dxdzerr)
-                adelta2dydz = delta(inextbeam.dydz, inextbeam.dydzerr, iNNbeam.dydz, iNNbeam.dydzerr)
+                adelta2       = delta(inextbeam.X         , inextbeam.Xerr         , iNNbeam.X         , iNNbeam.Xerr         )
+                adelta2dxdz   = delta(inextbeam.dxdz      , inextbeam.dxdzerr      , iNNbeam.dxdz      , iNNbeam.dxdzerr      )
+                adelta2dydz   = delta(inextbeam.dydz      , inextbeam.dydzerr      , iNNbeam.dydz      , iNNbeam.dydzerr      )
                 adelta2widthx = delta(inextbeam.beamWidthX, inextbeam.beamWidthXerr, iNNbeam.beamWidthX, iNNbeam.beamWidthXerr)
                 adelta2widthy = delta(inextbeam.beamWidthY, inextbeam.beamWidthYerr, iNNbeam.beamWidthY, iNNbeam.beamWidthYerr)
                 
+            
+            
+            
+            
+            
+            
+            # check movements in X
             deltaX = deltaSig(adelta1) > 3.5 and adelta1[0] >= limit
+            
             if ii < len(listbeam) -2:
-                if deltaX==False and adelta1[0]*adelta2[0] > 0. and  math.fabs(adelta1[0]+adelta2[0]) >= limit:
-                    #print " positive, "+str(adelta1[0]+adelta2[0])+ " limit="+str(limit)
+                
+                if deltaX == False                           and \
+                   adelta1[0] * adelta2[0] > 0.              and \
+                   math.fabs(adelta1[0]+adelta2[0]) >= limit :
                     deltaX = True
-                elif deltaX==True and adelta1[0]*adelta2[0]<=0 and adelta2[0] != 0 and math.fabs(adelta1[0]/adelta2[0]) > 0.33 and math.fabs(adelta1[0]/adelta2[0]) < 3:
+                
+                elif deltaX == True                          and \
+                     adelta1[0] * adelta2[0] <= 0            and \
+                     adelta2[0] != 0                         and \
+                     math.fabs(adelta1[0]/adelta2[0]) > 0.33 and \
+                     math.fabs(adelta1[0]/adelta2[0]) < 3    :
                     deltaX = False
-                    #print " negative, "+str(adelta1[0]/adelta2[0])
-                #else:
-                #    print str(adelta1[0]/adelta2[0])
-
-            # check movemnts in Y
+                    
+            # check movements in Y
             adelta1 = delta(ibeam.Y, ibeam.Yerr, inextbeam.Y, inextbeam.Yerr)
             adelta2 = (0.,1.e9)
+
             if iNNbeam.Type != -1:
                 adelta2 = delta(inextbeam.Y, inextbeam.Yerr, iNNbeam.Y, iNNbeam.Yerr)
                 
             deltaY = deltaSig(adelta1) > 3.5 and adelta1[0] >= limit
+            
             if ii < len(listbeam) -2:
-                if deltaY==False and adelta1[0]*adelta2[0] > 0. and  math.fabs(adelta1[0]+adelta2[0]) >= limit:
+                
+                if deltaY == False                           and \ 
+                   adelta1[0] * adelta2[0] > 0.              and \
+                   math.fabs(adelta1[0]+adelta2[0]) >= limit:
                     deltaY = True
-                elif deltaY==True and adelta1[0]*adelta2[0]<=0 and adelta2[0] != 0 and math.fabs(adelta1[0]/adelta2[0]) > 0.33 and math.fabs(adelta1[0]/adelta2[0]) < 3:
+                
+                elif deltaY == True                          and \
+                     adelta1[0] * adelta2[0]<=0              and \
+                     adelta2[0] != 0                         and \
+                     math.fabs(adelta1[0]/adelta2[0]) > 0.33 and \
+                     math.fabs(adelta1[0]/adelta2[0]) < 3    :
                     deltaY = False
+            
             # check movements in Z                                                    
-            
-            limit = float(ibeam.sigmaZ)/2.
-            deltaZ = deltaSig(adelta1z0) > 3.5 and math.fabs(adelta1z0[0]) >= limit
-            
+            limit       = float(ibeam.sigmaZ)/2.
+            deltaZ      = deltaSig(adelta1z0    ) > 3.5 and math.fabs(adelta1z0[0]) >= limit
+                        
+            # check Z resolution                                                    
             deltasigmaZ = deltaSig(adelta1sigmaZ) > 5.0
 
             # check dxdz
-            adelta = delta(ibeam.dxdz, ibeam.dxdzerr, inextbeam.dxdz, inextbeam.dxdzerr)
-            deltadxdz   = deltaSig(adelta) > 5.0
-            if deltadxdz and adelta1dxdz[0]*adelta2dxdz[0]<=0 and adelta2dxdz[0] != 0 and math.fabs(adelta1dxdz[0]/adelta2dxdz[0]) > 0.33 and math.fabs(adelta1dxdz[0]/adelta2dxdz[0]) < 3:
-                deltadxdz = False
-            # check dydz
-            adelta = delta(ibeam.dydz, ibeam.dydzerr, inextbeam.dydz, inextbeam.dydzerr)
-            deltadydz   = deltaSig(adelta) > 5.0
-            if deltadydz and adelta1dydz[0]*adelta2dydz[0]<=0 and adelta2dydz[0] != 0 and math.fabs(adelta1dydz[0]/adelta2dydz[0]) > 0.33 and math.fabs(adelta1dydz[0]/adelta2dydz[0]) < 3:
-                deltadydz = False
+            adelta    = delta(ibeam.dxdz, ibeam.dxdzerr, inextbeam.dxdz, inextbeam.dxdzerr)
+            deltadxdz = deltaSig(adelta) > 5.0
             
-            adelta = delta(ibeam.beamWidthX, ibeam.beamWidthXerr, inextbeam.beamWidthX, inextbeam.beamWidthXerr)
+            if deltadxdz                                       and \
+               adelta1dxdz[0]*adelta2dxdz[0]<=0                and \
+               adelta2dxdz[0] != 0                             and \
+               math.fabs(adelta1dxdz[0]/adelta2dxdz[0]) > 0.33 and \
+               math.fabs(adelta1dxdz[0]/adelta2dxdz[0]) < 3    :
+                deltadxdz = False
+
+            # check dydz
+            adelta    = delta(ibeam.dydz, ibeam.dydzerr, inextbeam.dydz, inextbeam.dydzerr)
+            deltadydz = deltaSig(adelta) > 5.0
+            
+            if deltadydz                                       and \
+               adelta1dydz[0]*adelta2dydz[0]<=0                and \
+               adelta2dydz[0] != 0                             and \
+               math.fabs(adelta1dydz[0]/adelta2dydz[0]) > 0.33 and \
+               math.fabs(adelta1dydz[0]/adelta2dydz[0]) < 3    :
+                deltadydz = False
+
+            
+            # check widthX
+            adelta      = delta(ibeam.beamWidthX, ibeam.beamWidthXerr, inextbeam.beamWidthX, inextbeam.beamWidthXerr)
             deltawidthX = deltaSig(adelta) > 5
-            if deltawidthX and adelta1widthx[0]*adelta2widthx[0]<=0 and adelta2widthx[0] != 0 and math.fabs(adelta1widthx[0]/adelta2widthx[0]) > 0.33 and math.fabs(adelta1widthx[0]/adelta2widthx[0]) < 3:
+            
+            if deltawidthX                                         and \
+               adelta1widthx[0]*adelta2widthx[0]<=0                and \
+               adelta2widthx[0] != 0                               and \
+               math.fabs(adelta1widthx[0]/adelta2widthx[0]) > 0.33 and \
+               math.fabs(adelta1widthx[0]/adelta2widthx[0]) < 3    :
                 deltawidthX = False
-                
+
+            
+            # check widthX
             adelta = delta(ibeam.beamWidthY, ibeam.beamWidthYerr, inextbeam.beamWidthY, inextbeam.beamWidthYerr) 
             deltawidthY = deltaSig(adelta) > 5
-            if deltawidthY and adelta1widthy[0]*adelta2widthy[0]<=0 and adelta2widthy[0] != 0 and math.fabs(adelta1widthy[0]/adelta2widthy[0]) > 0.33 and math.fabs(adelta1widthy[0]/adelta2widthy[0]) < 3:
+            if deltawidthY                                         and \
+               adelta1widthy[0] * adelta2widthy[0]<=0              and \
+               adelta2widthy[0] != 0                               and \
+               math.fabs(adelta1widthy[0]/adelta2widthy[0]) > 0.33 and \
+               math.fabs(adelta1widthy[0]/adelta2widthy[0]) < 3    :
                 deltawidthY = False
-            #if iNNbeam.Type != -1:
-            #    deltaX = deltaX and delta(ibeam.X, ibeam.Xerr, iNNbeam.X, iNNbeam.Xerr) > 1.5
-            #    deltaY = deltaY and delta(ibeam.Y, ibeam.Yerr, iNNbeam.Y, iNNbeam.Yerr) > 1.5
-            #    deltaZ = deltaZ and delta(ibeam.Z, ibeam.Zerr, iNNbeam.Z, iNNbeam.Zerr) > 1.5
-            #                
-            #    deltasigmaZ = deltasigmaZ and delta(ibeam.sigmaZ, ibeam.sigmaZerr, iNNbeam.sigmaZ, iNNbeam.sigmaZerr) > 2.5
-            #    deltadxdz   = deltadxdz and delta(ibeam.dxdz, ibeam.dxdzerr, iNNbeam.dxdz, iNNbeam.dxdzerr) > 2.5
-            #    deltadydz   = deltadydz and delta(ibeam.dydz, ibeam.dydzerr, iNNbeam.dydz, iNNbeam.dydzerr) > 2.5
-            #
-            #    deltawidthX = deltawidthX and delta(ibeam.beamWidthX, ibeam.beamWidthXerr, iNNbeam.beamWidthX, iNNbeam.beamWidthXerr) > 3
-            #    deltawidthY = deltawidthY and delta(ibeam.beamWidthY, ibeam.beamWidthYerr, iNNbeam.beamWidthY, iNNbeam.beamWidthYerr) > 3
 
-            if deltaX or deltaY or deltaZ or deltasigmaZ or deltadxdz or deltadydz or deltawidthX or deltawidthY:
+
+            if deltaX      or \
+               deltaY      or \
+               deltaZ      or \
+               deltasigmaZ or \
+               deltadxdz   or \
+               deltadydz   or \
+               deltawidthX or \
+               deltawidthY :
                 docreate = True
-                #print "shift here: x="+str(deltaX)+" y="+str(deltaY)
-                #print "x1 = "+ibeam.X + " x1err = "+ibeam.Xerr
-                #print "x2 = "+inextbeam.X + " x2err = "+inextbeam.Xerr
-                #print "Lumi1: "+str(ibeam.IOVfirst) + " Lumi2: "+str(inextbeam.IOVfirst)
-                #print " x= "+ibeam.X+" +/- "+ibeam.Xerr
-                #print "weighted average x = "+tmpbeam.X +" +//- "+tmpbeam.Xerr
-                #print "close payload because of movement in X= "+str(deltaX)+", Y= "+str(deltaY) + ", Z= "+str(deltaZ)+", sigmaZ= "+str(deltasigmaZ)+", dxdz= "+str(deltadxdz)+", dydz= "+str(deltadydz)+", widthX= "+str(deltawidthX)+", widthY= "+str(deltawidthY)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         if docreate:
             #if ii == len(listbeam)-1:
             tmpbeam.IOVlast = ibeam.IOVlast

@@ -258,7 +258,7 @@ def averageBeamSpot(bslist):
                       %(attr, i)
                 exit()
         
-        setattr(averageBS, attr, getattr(firstBS, attr) )
+        setattr(averageBS, attr, getattr(firstBS, attr))
 
     return averageBS
 
