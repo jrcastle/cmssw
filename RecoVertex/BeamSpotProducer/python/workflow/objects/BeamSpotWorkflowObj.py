@@ -229,8 +229,7 @@ class BeamSpotWorkflow(object):
                 bs_list = [ lumis[i] for i in range(p[0], p[1] + 1) ]
                 aveBeamSpot = averageBeamSpot(bs_list)
                 aveBeamSpot.Dump(self.payloadFileName)
-        
-        
+             
     def process(self):
         '''
         FIXME! Write the DOC
@@ -287,7 +286,6 @@ class BeamSpotWorkflow(object):
         # runs
         runsInDBSnotInCRAB   = runDiffs[0]
         runsInJSONnotInCRAB  = runDiffs[1]
-
         # lumis
         lumisInDBSnotInCRAB  = runDiffs[2]
         lumisInJSONnotInCRAB = runDiffs[3]
@@ -336,7 +334,8 @@ class BeamSpotWorkflow(object):
             
             # consider as missing lumis the ones that are present in 
             # both the JSON and DBS but not in CRAB
-            missing = set(lumisInJSONnotInCRAB) & set(lumisInDBSnotInCRAB)
+            missing = set(lumisInJSONnotInCRAB[run]) & \
+                      set(lumisInDBSnotInCRAB [run])
             
             # in percentage over the number of lumis in JSON
             missingPercent = float(len(missing)) / \
@@ -345,7 +344,7 @@ class BeamSpotWorkflow(object):
             if not missing:
                 self.logger.debug('All lumis are processed for run {RUN}'\
                                   ''.format(RUN = run))
-            elif len(missing)   <  self.dbsTolerance        and \
+            elif len(missing)   <  self.dbsTolerance        or \
                  missingPercent <= self.dbsTolerancePercent :
                 self.logger.warning('Missing some lumis,for run {RUN}'\
                                     ', but carry on'                  \
