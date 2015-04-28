@@ -101,6 +101,10 @@ class BeamSpot(object):
         self.dydzerr       = sqrt( float(payload[18].split()[6]) )
         self.beamWidthXerr = sqrt( float(payload[19].split()[7]) )
         # self.beamWidthYerr = float( payload[16].split()[1] ) # not in cov matrix!
+        # RIC: we should save it in the covariance matrix!
+        #      workaround, for now
+        self.beamWidthYerr = self.beamWidthXerr
+        
         # off diagonal terms
         self.XYerr         = float( payload[13].split()[2] )
         self.YXerr         = float( payload[14].split()[1] )
