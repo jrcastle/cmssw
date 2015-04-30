@@ -117,7 +117,8 @@ if __name__ == '__main__':
 	tagname = option.tag
     elif option.globaltag:
         globaltag = option.globaltag
-        cmd = 'cmscond_tagtree_list -c frontier://cmsfrontier.cern.ch:8000/Frontier/CMS_COND_31X_GLOBALTAG -P /afs/cern.ch/cms/DB/conddb -T '+globaltag+' | grep BeamSpot'
+#         cmd = 'cmscond_tagtree_list -c frontier://cmsfrontier.cern.ch:8000/Frontier/CMS_COND_31X_GLOBALTAG -P /afs/cern.ch/cms/DB/conddb -T '+globaltag+' | grep BeamSpot'
+        cmd = 'conddb list -T '+globaltag+' | grep BeamSpot'
         outcmd = commands.getstatusoutput( cmd )
         atag = outcmd[1].split()
         atag = atag[2]

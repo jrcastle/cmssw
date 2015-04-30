@@ -768,13 +768,15 @@ def createWeightedPayloads(fileName,listbeam=[],weighted=True):
 
             if deltaX or deltaY or deltaZ or deltasigmaZ or deltadxdz or deltadydz or deltawidthX or deltawidthY:
                 docreate = True
-                #print "shift here: x="+str(deltaX)+" y="+str(deltaY)
-                #print "x1 = "+ibeam.X + " x1err = "+ibeam.Xerr
-                #print "x2 = "+inextbeam.X + " x2err = "+inextbeam.Xerr
-                #print "Lumi1: "+str(ibeam.IOVfirst) + " Lumi2: "+str(inextbeam.IOVfirst)
-                #print " x= "+ibeam.X+" +/- "+ibeam.Xerr
-                #print "weighted average x = "+tmpbeam.X +" +//- "+tmpbeam.Xerr
-                #print "close payload because of movement in X= "+str(deltaX)+", Y= "+str(deltaY) + ", Z= "+str(deltaZ)+", sigmaZ= "+str(deltasigmaZ)+", dxdz= "+str(deltadxdz)+", dydz= "+str(deltadydz)+", widthX= "+str(deltawidthX)+", widthY= "+str(deltawidthY)
+                print " ----------------------------------------------------"
+                print "element: " , ii 
+                print "shift here: x="+str(deltaX)+" y="+str(deltaY)
+                print "x1 = "+ibeam.X + " x1err = "+ibeam.Xerr
+                print "x2 = "+inextbeam.X + " x2err = "+inextbeam.Xerr
+                print "Lumi1: "+str(ibeam.IOVfirst) + " Lumi2: "+str(inextbeam.IOVfirst)
+                print " x= "+ibeam.X+" +/- "+ibeam.Xerr
+                print "weighted average x = "+tmpbeam.X +" +//- "+tmpbeam.Xerr
+                print "close payload because of movement in X= "+str(deltaX)+", Y= "+str(deltaY) + ", Z= "+str(deltaZ)+", sigmaZ= "+str(deltasigmaZ)+", dxdz= "+str(deltadxdz)+", dydz= "+str(deltadydz)+", widthX= "+str(deltawidthX)+", widthY= "+str(deltawidthY)
         if docreate:
             #if ii == len(listbeam)-1:
             tmpbeam.IOVlast = ibeam.IOVlast

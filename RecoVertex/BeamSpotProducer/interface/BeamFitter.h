@@ -13,15 +13,27 @@
 
  ________________________________________________________________**/
 
-#include "FWCore/Framework/interface/Event.h"
-#include "DataFormats/Provenance/interface/Timestamp.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "CondCore/DBOutputService/interface/PoolDBOutputService.h"
+#include "CondFormats/BeamSpotObjects/interface/BeamSpotObjects.h"
+
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "DataFormats/Common/interface/View.h"
+#include "DataFormats/TrackReco/interface/HitPattern.h"
+#include "DataFormats/Provenance/interface/Timestamp.h"
 #include "DataFormats/TrackReco/interface/TrackBase.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/TrackCandidate/interface/TrackCandidate.h"
 #include "DataFormats/TrackCandidate/interface/TrackCandidateCollection.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+
 #include "RecoVertex/BeamSpotProducer/interface/BSTrkParameters.h"
 #include "RecoVertex/BeamSpotProducer/interface/BSFitter.h"
 #include "RecoVertex/BeamSpotProducer/interface/PVFitter.h"
@@ -51,14 +63,13 @@ class BeamFitter {
   reco::BeamSpot getBeamWidth() { return fbeamWidthFit; }
   void runAllFitter();
   void resetTrkVector() { fBSvector.clear(); }
-  void resetTotTrk() { ftotal_tracks=0; }
-  void resetLSRange() { fbeginLumiOfFit=fendLumiOfFit=-1; }
-  void resetRefTime() { freftime[0] = freftime[1] = 0; }
-  void setRefTime(time_t t0, time_t t1) {
+  void resetTotTrk()    { ftotal_tracks = 0; }
+  void resetLSRange()   { fbeginLumiOfFit = fendLumiOfFit=-1; }
+  void resetRefTime()   { freftime[0] = freftime[1] = 0; }
+  void setRefTime( time_t t0, time_t t1) {
     freftime[0] = t0;
     freftime[1] = t1;
-    // Make sure the string representation of the time
-    // is up-to-date
+    // Make sure the string representation of the time is up-to-date
     updateBTime();
   }
 
@@ -91,10 +102,15 @@ class BeamFitter {
   void dumpTxtFile(std::string &,bool);
   void dumpBWTxtFile(std::string &);
   void write2DB();
+
   reco::BeamSpot getBeamSpot() { return fbeamspot; }
+
   std::map<int, reco::BeamSpot> getBeamSpotMap() { return fbspotPVMap; }
-  std::vector<BSTrkParameters> getBSvector() { return fBSvector; }
+
+  std::vector<BSTrkParameters>  getBSvector()    { return fBSvector;   }
+
   TH1F * getCutFlow() { return h1cutFlow; }
+
   void subtractFromCutFlow(const TH1F* toSubtract) {
     h1cutFlow->Add(toSubtract, -1.0);
     for (unsigned int i=0; i<sizeof(countPass)/sizeof(countPass[0]); i++){
@@ -220,6 +236,7 @@ class BeamFitter {
 
   //beam fit results
   TTree* ftreeFit_;
+  TTree* ftreeResults_;
   int frunFit;
   int fbeginLumiOfFit;
   int fendLumiOfFit;
@@ -241,6 +258,24 @@ class BeamFitter {
   double fwidthY;
   double fwidthXErr;
   double fwidthYErr;
+  
+  double fx_pv;
+  double fy_pv;
+  double fz_pv;
+  double fxErr_pv;
+  double fyErr_pv;
+  double fzErr_pv;
+  double fdxdz_pv;
+  double fdydz_pv;
+  double fdxdzErr_pv;
+  double fdydzErr_pv;
+  double fsigmaZ_pv;
+  double fsigmaZErr_pv;
+  double fwidthX_pv;
+  double fwidthY_pv;
+  double fwidthXErr_pv;
+  double fwidthYErr_pv;
+  
 
   TH1F *h1ntrks;
   TH1F *h1vz_event;
