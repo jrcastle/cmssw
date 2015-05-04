@@ -8,20 +8,15 @@ from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 def cleanAndSort(fullList, cleanBadFits = True):
     '''
     Sorts the lumi:BS dictionary and cleans it up
-    from the not properly converged fits
+    from the not properly converged fits.
     '''
-    ls = []
-    bs = []
+    # clean from badly converged
+    cleaned =  {k:v for k, v in fullList if v.Type > 0 and cleanBadFits}
 
-    for k in sorted(fullList):
-        if cleanBadFits and fullList[k].Type <= 0:
-             continue
-        ls.append(k   )
-        bs.append(fullList[k])
-
-    orderedFullList = OrderedDict( zip(ls, bs) )
-
-    return orderedFullList
+    # sort by LS
+    ordered = OrderedDict(sorted(cleaned.items(), key = lambda t: t[0]))
+                                         
+    return ordered
 
 def delta(x, xe, y, ye):
     '''
@@ -31,7 +26,7 @@ def delta(x, xe, y, ye):
     Gives the sign of the difference.
     '''
     delta        = x - y
-    deltaErr     = sqrt(pow(xe, 2) + pow(ye,2))
+    deltaErr     = sqrt(pow(xe, 2) + pow(ye, 2))
     significance = 0.   
     
     # protect against divisions by 0.
@@ -54,7 +49,6 @@ def splitByDrift(fullList, maxLumi = 60):
     The lumi section where the fit hasn't converged properly
     are excluded (Type > 0 is required).
     '''
-    
     # Clean up badly converged fits and sort the dictionary
     fullList = cleanAndSort(fullList)
     
@@ -88,14 +82,14 @@ def splitByDrift(fullList, maxLumi = 60):
         # this mess is inherited from the old code...
         
         variables = [
-            ('X'         , 'Xerr'      , 'beamWidthX', 0.0025, 3.5, True , True ),
-            ('Y'         , 'Yerr'      , 'beamWidthY', 0.0025, 3.5, True , True ),
-            ('Z'         , 'Zerr'      , 'sigmaZ'    , 0.    , 3.5, False, False),
-            ('dxdz'      , 'dxdzerr'   , ''          , 0.    , 5. , False, True ),
-            ('dydz'      , 'dydzerr'   , ''          , 0.    , 5. , False, True ),
-            ('sigmaZ'    , 'sigmaZerr' , ''          , 0.    , 5. , False, False),
-            ('beamWidthX', 'beamWidthX', ''          , 0.    , 5. , False, True ),
-            ('beamWidthY', 'beamWidthY', ''          , 0.    , 5. , False, True ),
+          ('X'         , 'Xerr'      , 'beamWidthX', 0.0025, 3.5, True , True ),
+          ('Y'         , 'Yerr'      , 'beamWidthY', 0.0025, 3.5, True , True ),
+          ('Z'         , 'Zerr'      , 'sigmaZ'    , 0.    , 3.5, False, False),
+          ('dxdz'      , 'dxdzerr'   , ''          , 0.    , 5. , False, True ),
+          ('dydz'      , 'dydzerr'   , ''          , 0.    , 5. , False, True ),
+          ('sigmaZ'    , 'sigmaZerr' , ''          , 0.    , 5. , False, False),
+          ('beamWidthX', 'beamWidthX', ''          , 0.    , 5. , False, True ),
+          ('beamWidthY', 'beamWidthY', ''          , 0.    , 5. , False, True ),
         ]
         
         for variable in variables:
@@ -129,7 +123,8 @@ def splitByDrift(fullList, maxLumi = 60):
     # Last LS is the first breaking point by definition
     breaks.append(fullList.keys()[-1])
 
-    # sort the list
+    # sort the list. There may be repeated breaking points in case
+    # one finds a lumi range of one lumi only
     breaks = sorted(breaks)
     
     pairs = []

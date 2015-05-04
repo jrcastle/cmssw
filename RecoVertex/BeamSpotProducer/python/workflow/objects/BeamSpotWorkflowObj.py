@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import glob
 import os
 import re
@@ -14,7 +16,7 @@ from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands    import getListOfR
 from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands    import getFilesToProcessForRun
 from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands import getLastUploadedIOV
 from RecoVertex.BeamSpotProducer.workflow.utils.compareLists   import compareLists
-from RecoVertex.BeamSpotProducer.workflow.utils.timeoutManager import timeoutManager 
+from RecoVertex.BeamSpotProducer.workflow.utils.timeoutManager import TimeoutManager 
 from RecoVertex.BeamSpotProducer.workflow.utils.beamSpotMerge  import averageBeamSpot
 from RecoVertex.BeamSpotProducer.workflow.utils.beamSpotMerge  import splitByDrift
     
@@ -309,29 +311,30 @@ class BeamSpotWorkflow(object):
                 toProcess = { k:v for k, v in toProcess.items() if k < run}
                 break
 
+
+        import pdb ; pdb.set_trace()
+       
         # check that, for the runs that are processed, most, if not all,
         # the lumi sections have been processed.
         # If the number of missing lumis goes beyond the tolerance,
         # warnings and errors are issued. 
         for run in toProcess.keys():
-            # number of files in DBS for the given run 
-            DbsFilesForRun = getFilesToProcessForRun(self.api    ,
-                                                     self.dataSet,
-                                                     run         )
-
-            # number of processed files and number of dbs files
-            # for the given run
-            procFilesForRun = [file for file in self.procFileList
-                               if str(run) in file]
-                               
-            # do something with the timeoutManager,
-            # I have to understand this... later
-            #if len(procFilesForRun) < len(DbsFilesForRun):
-            #    pass
-            #else:
-            #    timeoutManager('DBS_VERY_BIG_MISMATCH_Run%d'%run)
-            #    timeoutManager('DBS_MISMATCH_Run%d'         %run)
             
+            timeout = TimeoutManager(10, 0.2, 'timeout exceeded', self.logger)
+            timeout.check = self.checkProcessedFiles(run)
+            timeout.start()
+
+            
+#             if nMissingFiles >= self.missingFilesTolerance:
+#                 self.logger.warning('missing files timeout %' %nMissingFiles)
+#                 signal.signal(signal.SIGALRM, handler)
+#                 signal.alarm(10)
+#                 while nMissingFiles >= self.missingFilesTolerance:  
+#                     hang(2)            
+#             else:
+#                 self.logger.error('out!')
+            
+
             # consider as missing lumis the ones that are present in 
             # both the JSON and DBS but not in CRAB
             missing = set(lumisInJSONnotInCRAB[run]) & \
