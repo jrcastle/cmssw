@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import glob
 import os
 import re
@@ -14,7 +16,7 @@ from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands    import getListOfR
 from RecoVertex.BeamSpotProducer.workflow.utils.dbsCommands    import getFilesToProcessForRun
 from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands import getLastUploadedIOV
 from RecoVertex.BeamSpotProducer.workflow.utils.compareLists   import compareLists
-from RecoVertex.BeamSpotProducer.workflow.utils.timeoutManager import timeoutManager 
+from RecoVertex.BeamSpotProducer.workflow.utils.timeoutManager import TimeoutManager 
 from RecoVertex.BeamSpotProducer.workflow.utils.beamSpotMerge  import averageBeamSpot
 from RecoVertex.BeamSpotProducer.workflow.utils.beamSpotMerge  import splitByDrift
     
@@ -314,6 +316,7 @@ class BeamSpotWorkflow(object):
         # If the number of missing lumis goes beyond the tolerance,
         # warnings and errors are issued. 
         for run in toProcess.keys():
+
             # number of files in DBS for the given run 
             DbsFilesForRun = getFilesToProcessForRun(self.api    ,
                                                      self.dataSet,
