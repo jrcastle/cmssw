@@ -2,7 +2,24 @@
 
 from math import sqrt, pow
 from numpy import average
+from collections import OrderedDict # only with python >= 2.7
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
+
+def cleanAndSort(fullList):
+    '''
+    Sorts the lumi:BS dictionary and cleans it up
+    from the not properly converged fits
+    '''
+    ls = []
+    bs = []
+
+    for k in sorted(fullList):
+        if fullList[k].Type <= 0:
+             continue
+        ls.append(k   )
+        bs.append(fullList[k])
+    
+    return fullList
 
 def delta(x, xe, y, ye):
     '''
@@ -34,12 +51,10 @@ def splitByDrift(fullList, maxLumi = 60):
     
     The lumi section where the fit hasn't converged properly
     are excluded (Type > 0 is required).
-    
-    Make sure the lumi sections are sorted.
     '''
     
-    # Clean up badly converged fits
-    fullList = { lumi:bs for lumi, bs in fullList.items() if bs.Type > 0 }
+    # Clean up badly converged fits and sort the dictionary
+    fullList = cleanAndSort(fullList)
     
     # breaking points. 
     # First LS is the first starting point by definition
