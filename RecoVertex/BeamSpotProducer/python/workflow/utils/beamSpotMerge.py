@@ -5,7 +5,7 @@ from numpy import average
 from collections import OrderedDict # only with python >= 2.7
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 
-def cleanAndSort(fullList):
+def cleanAndSort(fullList, cleanBadFits = True):
     '''
     Sorts the lumi:BS dictionary and cleans it up
     from the not properly converged fits
@@ -14,7 +14,7 @@ def cleanAndSort(fullList):
     bs = []
 
     for k in sorted(fullList):
-        if fullList[k].Type <= 0:
+        if cleanBadFits and fullList[k].Type <= 0:
              continue
         ls.append(k   )
         bs.append(fullList[k])
@@ -129,13 +129,12 @@ def splitByDrift(fullList, maxLumi = 60):
     # Last LS is the first breaking point by definition
     breaks.append(fullList.keys()[-1])
 
-    # make sure there's no repeated breaking points
-    # and sort the list
-    breaks = sorted(list(set(breaks)))
+    # sort the list
+    breaks = sorted(breaks)
     
     pairs = []
     
-    # create start, end pairs
+    # create start, end pairs. 
     for b in range(0, len(breaks), 2):
         pairs.append( (breaks[b], breaks[b+1]) )
     
