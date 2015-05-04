@@ -18,8 +18,10 @@ def cleanAndSort(fullList):
              continue
         ls.append(k   )
         bs.append(fullList[k])
-    
-    return fullList
+
+    orderedFullList = OrderedDict( zip(ls, bs) )
+
+    return orderedFullList
 
 def delta(x, xe, y, ye):
     '''
