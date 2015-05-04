@@ -1,0 +1,23 @@
+Runnumber 195660
+BeginTimeOfFit 2012.06.07 08:24:40 GMT 1339057480
+EndTimeOfFit 2012.06.07 08:24:50 GMT 1339057490
+LumiRange 220 - 220
+Type 2
+X0 0.0744316
+Y0 0.0629681
+Z0 -0.641651
+sigmaZ0 4.65043
+dxdz -8.28864e-05
+dydz -0.000222668
+BeamWidthX 0.00152997
+BeamWidthY 0.00217187
+Cov(0,j) 1.28567e-07 1.46479e-09 0 0 0 0 0 
+Cov(1,j) 1.46479e-09 1.30704e-07 0 0 0 0 0 
+Cov(2,j) 0 0 0.248559 0 0 0 0 
+Cov(3,j) 0 0 0 0.124227 0 0 0 
+Cov(4,j) 0 0 0 0 5.63399e-09 -1.06515e-11 0 
+Cov(5,j) 0 0 0 0 -1.06515e-11 5.82464e-09 0 
+Cov(6,j) 0 0 0 0 0 0 1.88478e-07
+EmittanceX 0
+EmittanceY 0
+BetaStar 0
