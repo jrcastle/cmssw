@@ -12,7 +12,7 @@
 
 GlobalRecHitsProducer::GlobalRecHitsProducer(const edm::ParameterSet& iPSet) :
   fName(""), verbosity(0), frequency(0), label(""), getAllProvenances(false),
-  printProvenanceInfo(false), count(0)
+  printProvenanceInfo(false), trackerHitAssociator_(iPSet, consumesCollector()), count(0)
 {
   std::string MsgLoggerCat = "GlobalRecHitsProducer_GlobalRecHitsProducer";
 
@@ -65,7 +65,6 @@ GlobalRecHitsProducer::GlobalRecHitsProducer(const edm::ParameterSet& iPSet) :
   EBHits_Token_ = consumes<CrossingFrame<PCaloHit> >(edm::InputTag(std::string("mix"), iPSet.getParameter<std::string>("hitsProducer") + std::string("EcalHitsEB")));
   EEHits_Token_ = consumes<CrossingFrame<PCaloHit> >(edm::InputTag(std::string("mix"), iPSet.getParameter<std::string>("hitsProduc\
 er") + std::string("EcalHitsEE")));
-  conf_ = iPSet;
 
   // use value of first digit to determine default output level (inclusive)
   // 0 is none, 1 is basic, 2 is fill output, 3 is gather output
@@ -893,13 +892,15 @@ void GlobalRecHitsProducer::fillTrk(edm::Event& iEvent,
     return;
   }  
 
-  TrackerHitAssociator associate(iEvent,conf_);
+  TrackerHitAssociator& associate = trackerHitAssociator_;
+  associate.processEvent(iEvent);
 
   edm::ESHandle<TrackerGeometry> pDD;
   iSetup.get<TrackerDigiGeometryRecord>().get(pDD);
   if (!pDD.isValid()) {
     edm::LogWarning(MsgLoggerCat)
       << "Unable to find TrackerDigiGeometry in event!";
+    associate.clearEvent();
     return;
   }
   const TrackerGeometry &tracker(*pDD);
@@ -1131,6 +1132,7 @@ void GlobalRecHitsProducer::fillTrk(edm::Event& iEvent,
   if (!recHitColl.isValid()) {
     edm::LogWarning(MsgLoggerCat)
       << "Unable to find SiPixelRecHitCollection in event!";
+    associate.clearEvent();
     return;
   }  
   
@@ -1140,6 +1142,7 @@ void GlobalRecHitsProducer::fillTrk(edm::Event& iEvent,
   if (!geom.isValid()) {
     edm::LogWarning(MsgLoggerCat)
       << "Unable to find TrackerDigiGeometry in event!";
+    associate.clearEvent();
     return;
   }
   //const TrackerGeometry& theTracker(*geom);
@@ -1284,6 +1287,7 @@ void GlobalRecHitsProducer::fillTrk(edm::Event& iEvent,
   if (verbosity > 0)
     edm::LogInfo(MsgLoggerCat) << eventout << "\n";
 
+  associate.clearEvent();
   return;
 }
 
