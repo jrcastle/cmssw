@@ -675,7 +675,6 @@ ALCARECOEventContent.outputCommands.extend(OutALCARECOTkAlMinBias_noDrop.outputC
 ALCARECOEventContent.outputCommands.extend(OutALCARECOTkAlBeamHalo_noDrop.outputCommands)
 ALCARECOEventContent.outputCommands.extend(OutALCARECOSiStripCalZeroBias_noDrop.outputCommands)
 ALCARECOEventContent.outputCommands.extend(OutALCARECOSiStripCalMinBias_noDrop.outputCommands)
-ALCARECOEventContent.outputCommands.extend(OutALCARECOEcalCalPhiSym_noDrop.outputCommands)
 ALCARECOEventContent.outputCommands.extend(OutALCARECOEcalCalElectron_noDrop.outputCommands)
 ALCARECOEventContent.outputCommands.extend(OutALCARECOEcalCalPi0Calib_noDrop.outputCommands)
 ALCARECOEventContent.outputCommands.extend(OutALCARECOEcalCalEtaCalib_noDrop.outputCommands)
@@ -719,6 +718,8 @@ REGENEventContent = cms.PSet(
       'drop *_ak4GenJets_*_*',
       'drop *_ak7GenJets_*_*',
       'drop *_ak8GenJets_*_*',
+      'drop *_ak4GenJetsNoNu_*_*',
+      'drop *_ak8GenJetsNoNu_*_*',
       'drop *_genCandidatesForMET_*_*',
       'drop *_genParticlesForMETAllVisible_*_*',
       'drop *_genMetCalo_*_*',

@@ -57,10 +57,10 @@ def L1THLT(process):
 #   modifications when running L1T+HLT
 
     if not ('HLTAnalyzerEndpath' in process.__dict__) :
-        from HLTrigger.Configuration.HLT_FULL_cff import hltL1GtTrigReport,hltTrigReport
-        process.hltL1GtTrigReport = hltL1GtTrigReport
-        process.hltTrigReport = hltTrigReport
-        process.HLTAnalyzerEndpath = cms.EndPath(process.hltL1GtTrigReport +  process.hltTrigReport)
+        from HLTrigger.Configuration.HLT_FULL_cff import fragment
+        process.hltL1GtTrigReport = fragment.hltL1GtTrigReport
+        process.hltTrigReport = fragment.hltTrigReport
+        process.HLTAnalyzerEndpath = cms.EndPath(process.hltL1GtTrigReport + process.hltTrigReport)
         process.schedule.append(process.HLTAnalyzerEndpath)
 
     process=Base(process)
@@ -91,13 +91,19 @@ def HLTDropPrevious(process):
     return(process)
 
 
-def MassReplaceInputTag(process,old="rawDataCollector",new="rawDataRepacker"):
+def MassReplaceInputTag(process,old="rawDataCollector",new="rawDataRepacker",verbose=False,moduleLabelOnly=False,skipLabelTest=False):
 #   replace InputTag values (adapted from Configuration/Applications/python/ConfigBuilder.py)
     from PhysicsTools.PatAlgos.tools.helpers import massSearchReplaceAnyInputTag
     for s in process.paths_().keys():
-        massSearchReplaceAnyInputTag(getattr(process,s),old,new)
+        massSearchReplaceAnyInputTag(getattr(process,s),old,new,verbose,moduleLabelOnly,skipLabelTest)
     return(process)
 
+def MassReplaceParameter(process,name="label",old="rawDataCollector",new="rawDataRepacker",verbose=False):
+#   replace values of named parameters
+    from PhysicsTools.PatAlgos.tools.helpers import massSearchReplaceParam
+    for s in process.paths_().keys():
+        massSearchReplaceParam(getattr(process,s),name,old,new,verbose)
+    return(process)
 
 def L1REPACK(process):
 #   Replace only the L1 parts and keep the rest
@@ -114,27 +120,4 @@ def L1REPACK(process):
 
     process=L1T(process)
 
-    return process
-
-
-def customizeHLTforCMSSW(process):
-#   Apply cff-based customisations to a process
-#   Can't use process.load(customFile) as it only loads additional objects into the process 
-#   One can not remove any module this way, but modify it!
-
-    class Module(object):
-        pass
-    locals = Module()
-
-    globals = process.__dict__
-
-    import imp
-    customFile = imp.find_module('HLTrigger/Configuration/customizeHLTforCMSSW')[1]
-#   import pkgutil
-#   customFile = pkgutil.get_loader('HLTrigger/Configuration/customizeHLTforCMSSW').filename
-
-#   execfile(customFile, globals, locals.__dict__)
-    execfile(customFile, globals)
-    process.extend(locals)
- 
     return process
