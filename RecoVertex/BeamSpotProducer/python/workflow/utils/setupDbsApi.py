@@ -9,8 +9,10 @@ except:
           'to connect to DBS3'
     shell = os.getenv('SHELL')
     if 'csh' in shell:  
-        print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.csh'      
+        print 'source /cvmfs/cms.cern.ch/crab3/crab.csh' # CRAB3 does not work
+        #print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.csh'      
     else:
+        #print 'source /cvmfs/cms.cern.ch/crab3/crab.csh'
         print 'source /afs/cern.ch/cms/ccs/wm/scripts/Crab/crab.sh'      
     exit()
 
