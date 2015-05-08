@@ -83,8 +83,6 @@ class TimeoutManager(object):
 #             time.sleep(0.3)
 
 
-
-
 class TimeoutDummy(TimeoutManager):
     '''
     Example child class
