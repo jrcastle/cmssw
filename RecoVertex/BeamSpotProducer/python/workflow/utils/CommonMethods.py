@@ -670,7 +670,7 @@ def createWeightedPayloads(fileName,listbeam=[],weighted=True, logger=None):
             
             if ii < len(listbeam) -2:
                 
-                if deltaY == False                           and \ 
+                if deltaY == False                           and \
                    adelta1[0] * adelta2[0] > 0.              and \
                    math.fabs(adelta1[0]+adelta2[0]) >= limit:
                     deltaY = True
