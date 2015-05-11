@@ -3,7 +3,10 @@ globalTag = {
   'Fake': 'auto:run1_mc_Fake',
   'FULL': 'auto:run2_mc_FULL',
   'GRun': 'auto:run2_mc_GRun',       # used as default
+  '25ns14e33_v1': 'auto:run2_mc_GRun',
+  '50ns_5e33_v1': 'auto:run2_mc_50nsGRun',
   '50nsGRun': 'auto:run2_mc_50nsGRun',
+  '50ns': 'auto:run2_mc_50nsGRun',
   'HIon': 'auto:run2_mc_HIon',
   'PIon': 'auto:run2_mc_PIon',
   'data': 'auto:run1_hlt',
@@ -91,7 +94,6 @@ class HLTProcessOptions(object):
     self.events     = 100         # (*) run on these many events
     self.output     = 'all'       # (*) output 'all', 'minimal' or 'none' output modules
     self.fragment   = False       #     prepare a configuration fragment (true) or a whole process (false)
-    self.fastsim    = False       #     prepare a configuration fragment suitable for FastSim
     self.hilton     = False       #     prepare a configuration for running with hilton-like modules
 
 
@@ -106,11 +108,6 @@ class HLTProcessOptions(object):
     elif name is 'l1Xml' and type(value) is not ConnectionL1TMenuXml:
       # format '--l1Xml' as needed
       object.__setattr__(self, name, ConnectionL1TMenuXml(value))
-    elif name is 'fastsim' and value:
-      # '--fastsim' implies '--fragment' and '--mc'
-      object.__setattr__(self, 'fastsim',   True)
-      object.__setattr__(self, 'fragment',  True)
-      object.__setattr__(self, 'data',      False)
     elif name is 'open' and value:
       # '--open' implies '--unprescale'
       object.__setattr__(self, 'open',      True)
