@@ -11,7 +11,7 @@ def cleanAndSort(fullList, cleanBadFits = True):
     from the not properly converged fits.
     '''
     # clean from badly converged
-    cleaned =  {k:v for k, v in fullList if v.Type > 0 and cleanBadFits}
+    cleaned =  {k:v for k, v in fullList.items() if v.Type > 0 and cleanBadFits}
 
     # sort by LS
     ordered = OrderedDict(sorted(cleaned.items(), key = lambda t: t[0]))

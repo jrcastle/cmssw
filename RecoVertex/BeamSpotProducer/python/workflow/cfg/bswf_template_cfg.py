@@ -6,9 +6,9 @@ Template cfg file to be passed to BeamSporWorkflow
 
 cfg = BeamSpotWorkflowCfg()
 
-cfg.sourceDir             = 'Runs2012B_FULL/Results/'
-cfg.archiveDir            = 'Runs2012B_FULL/Archive/'
-cfg.workingDir            = 'Runs2012B_FULL/Working/'
+cfg.sourceDir             = 'test/Results/'
+cfg.archiveDir            = 'test/Archive/'
+cfg.workingDir            = 'test/Working/'
 cfg.jsonFileName          = 'beamspot_payload_2012BONLY_merged_JSON_all.txt'
 cfg.databaseTag           = 'BeamSpotObjects_2009_LumiBased_SigmaZ_v29_offline'
 cfg.dataSet               = '/StreamExpress/Run2012B-TkAlMinBias-v1/ALCARECO'

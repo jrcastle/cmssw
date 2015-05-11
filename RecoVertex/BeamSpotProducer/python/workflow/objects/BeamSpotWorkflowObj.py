@@ -241,12 +241,12 @@ class BeamSpotWorkflow(object):
         filesToProcess = []
 
         # Check the last IOV from querying the COND DB
-        lastUploadedIOV = getLastUploadedIOV(self.databaseTag, 
-                                             self.tagName    ,
-                                             self.logger     )
+#         lastUploadedIOV = getLastUploadedIOV(self.databaseTag, 
+#                                              self.tagName    ,
+#                                              self.logger     )
         
         # RIC: just for testing
-        lastUploadedIOV = 194000
+        lastUploadedIOV = 0
 
         self.logger.info('Last uploaded run: %d' %lastUploadedIOV)
                                              
@@ -260,24 +260,37 @@ class BeamSpotWorkflow(object):
         self.logger.info('Retrieved CRAB processed runs and lumis')
                 
         # Get from DBS the list of Runs and lumis after last IOV
-        runsLumisDBS  = getListOfRunsAndLumiFromDBS(self.api       , 
-                                                    self.dataSet   , 
-                                                    lastUploadedIOV,
-                                                    packed = False )
+#         runsLumisDBS  = getListOfRunsAndLumiFromDBS(self.api       , 
+#                                                     self.dataSet   , 
+#                                                     lastUploadedIOV,
+#                                                     packed = False )
+
+
+        runsLumisDBS  = runsLumisCRAB
+        runsLumisJSON = runsLumisCRAB
+
+
+
+
+
+
 
         lastUnclosedRun = max(runsLumisDBS.keys())
         self.logger.info('Retrieved runs and lumis in DBS')
         self.logger.info('Last unclosed DBS run %d' %lastUnclosedRun)
 
         # Get from JSON the list of Runs and lumis after last IOV
-        runsLumisJSON = readJson(lastUploadedIOV  , 
-                                 self.jsonFileName,
-                                 packed = False   )
+#         runsLumisJSON = readJson(lastUploadedIOV  , 
+#                                  self.jsonFileName,
+#                                  packed = False   )
 
         self.logger.info('Retrieved runs and lumis in the JSON')
 
         # At this point for CRAB, JSON and DBS we have a dictionary like:
         # {194116 : [2, 3, 4, 5, 15, 16, 17, 18]}
+
+        
+
 
         # Get from runs in {DBS, CRAB, JSON} but not in {DBS, CRAB, JSON}
         runDiffs =  self._getRunDiffs(runsLumisCRAB  , 
@@ -311,30 +324,30 @@ class BeamSpotWorkflow(object):
                 toProcess = { k:v for k, v in toProcess.items() if k < run}
                 break
 
+
+#         import pdb ; pdb.set_trace()
+       
         # check that, for the runs that are processed, most, if not all,
         # the lumi sections have been processed.
         # If the number of missing lumis goes beyond the tolerance,
         # warnings and errors are issued. 
         for run in toProcess.keys():
-
-            # number of files in DBS for the given run 
-            DbsFilesForRun = getFilesToProcessForRun(self.api    ,
-                                                     self.dataSet,
-                                                     run         )
-
-            # number of processed files and number of dbs files
-            # for the given run
-            procFilesForRun = [file for file in self.procFileList
-                               if str(run) in file]
-                               
-            # do something with the timeoutManager,
-            # I have to understand this... later
-            #if len(procFilesForRun) < len(DbsFilesForRun):
-            #    pass
-            #else:
-            #    timeoutManager('DBS_VERY_BIG_MISMATCH_Run%d'%run)
-            #    timeoutManager('DBS_MISMATCH_Run%d'         %run)
             
+#             timeout = TimeoutManager(10, 0.2, 'timeout exceeded', self.logger)
+#             timeout.check = self.checkProcessedFiles(run)
+#             timeout.start()
+
+            
+#             if nMissingFiles >= self.missingFilesTolerance:
+#                 self.logger.warning('missing files timeout %' %nMissingFiles)
+#                 signal.signal(signal.SIGALRM, handler)
+#                 signal.alarm(10)
+#                 while nMissingFiles >= self.missingFilesTolerance:  
+#                     hang(2)            
+#             else:
+#                 self.logger.error('out!')
+            
+
             # consider as missing lumis the ones that are present in 
             # both the JSON and DBS but not in CRAB
             missing = set(lumisInJSONnotInCRAB[run]) & \

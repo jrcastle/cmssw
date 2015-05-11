@@ -110,7 +110,8 @@ if __name__ == '__main__':
     myPL = Payload('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_4_0_pre8/src/'\
                    'RecoVertex/BeamSpotProducer/python/workflow/cfg/'          \
                    'Runs2012B_FULL/Results/XRepFinal_1_195660_1.txt'           )
-
+    
+    myPL = Payload('payload_test.txt')
     allLines = myPL.splitBySingleFit()
     
     allBs = myPL.fromTextToBS()
