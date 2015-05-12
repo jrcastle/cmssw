@@ -5,15 +5,12 @@ process = cms.Process("d0phi")
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.load("RecoVertex.BeamSpotProducer.d0_phi_analyzer_cff")
 
-from fileList_StreamExpressPCL import * 
+# from fileList_StreamExpressPCL import * 
 process.source = cms.Source("PoolSource",
                    fileNames = cms.untracked.vstring(
-#                                streamExpressList_Old
-#                 "file:/afs/cern.ch/work/f/fiorendi/private/BeamSpot/CMSSW_7_4_0/src/skim_Tier0_PCLTest_SUPERBUNNIES_vocms047_StreamExpressv3_alcareco_lumi690-710.root",
-#                 "file:/afs/cern.ch/work/f/fiorendi/private/BeamSpot/CMSSW_7_4_0/src/skim_Tier0_PCLTest_SUPERBUNNIES_vocms047_StreamExpressv3_alcareco_lumi690-710_part2.root",
-                "file:/afs/cern.ch/work/f/fiorendi/private/BeamSpot/CMSSW_7_4_0/src/skim_Tier0_PCLTest_SUPERBUNNIES_vocms047_StreamExpressv3_alcareco_lumi500-900.root",
-#                 "file:/afs/cern.ch/work/f/fiorendi/private/BeamSpot/CMSSW_7_4_0/src/skim_StreamExpress2012D_lumi690-710_part1.root",
-#                 "file:/afs/cern.ch/work/f/fiorendi/private/BeamSpot/CMSSW_7_4_0/src/Configuration/DataProcessing/test/TkAlMinBias.root"
+#                    streamExpressList_Old
+                    "file:/afs/cern.ch/work/f/fiorendi/private/BeamSpot/CMSSW_7_4_0/src/skim_Tier0_PCLTest_SUPERBUNNIES_vocms047_StreamExpressv3_alcareco_lumi500-900.root",
+#                   "file:/afs/cern.ch/work/f/fiorendi/private/BeamSpot/CMSSW_7_4_0/src/skim_StreamExpress2012D_lumi690-710_part1.root",
 			        )
 			     )
 
