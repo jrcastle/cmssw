@@ -2,6 +2,7 @@
 
 from subprocess import PIPE, Popen
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import *
+from RecoVertex.BeamSpotProducer.workflow.objects.DBEntryObj import DBEntry
 
 def getLastUploadedIOV(databaseTag, tagName, logger = None, maxIOV = 2e13):
     '''
@@ -10,6 +11,7 @@ def getLastUploadedIOV(databaseTag, tagName, logger = None, maxIOV = 2e13):
         
     Some useful info 
     https://indico.cern.ch/event/377500/session/2/contribution/11/material/slides/0.pdf
+    https://twiki.cern.ch/twiki/bin/view/CMS/CondDBToolMap
     
     Need some more logging.
     Need to address the Global Tag part.
@@ -37,6 +39,34 @@ def getLastUploadedIOV(databaseTag, tagName, logger = None, maxIOV = 2e13):
     
     return lastIOV
 
+def getListOfUploadedIOV(databaseTag, firstIOV = None, lastIOV = None, maxIOV = 2e13):
+    '''
+    This function gets returns a list of DBEntry objects.
+    firstIOV, lastIOV first and last run to consider 
+    '''
+        
+    listIOVCommand = ['conddb', '--nocolors', 'list', 
+                      databaseTag, '-L', '%d'%maxIOV]
+    
+    conddb_query = Popen(listIOVCommand, stdout = PIPE, stderr = PIPE)
+    out, err = conddb_query.communicate()
+
+    # do not consider bla bla lines
+    toSkip = ['Since', '-----', '']
+    
+    # create a container of lines from the stdout
+    lines = [line for line in out.split('\n') if line[:5] not in toSkip]
+    
+    # from string to objects
+    dbEntries = [DBEntry(line) for line in lines]
+    
+    # trim non interesting IOVs
+    dbEntries = [dbe for dbe in dbEntries 
+                 if dbe.run >= firstIOV and dbe.run <= lastIOV]
+    
+    return dbEntries
+
+
 if __name__ == '__main__':
 
     lastIOV = getLastUploadedIOV('BeamSpotObjects_2009_LumiBased_SigmaZ_v29_offline',
@@ -45,26 +75,9 @@ if __name__ == '__main__':
                                   
     print lastIOV                              
 
-
-
-    #dbError = commands.getstatusoutput( listIOVCommand )
-    #
-    #if logger: logger.info(dbError)
-    #
-    #if dbError[0] != 0 :
-    #    if 'There is no tag or global tag named {TAGNAME} in the database.\
-    #       ''.format(TAGNAME= tagName) in dbError[1]:
-    #        if logger: logger.warning('Creating a new tag because I got the following '\
-    #                                  'error contacting the DB \n%s' %dbError[1])
-    #        return 1
-    #    else:
-    #        if logger: logger.error(error_cant_connect_db(dbError[1]))
-
-    #aCommand = listIOVCommand+' | grep Beam | tail -1 | awk \'{print $1}\''
-    #output = commands.getstatusoutput( aCommand )
-    ##WARNING when we pass to lumi IOV this should be long long
-    #if output[1] == '':
-    #  logger.error(error_tag_exist_last_iov_doesnt(tagName, emails = []))
-    #goodoutput =  output[1].split('\n')[1]
-    #if logger: logger.info('Last IOV from DB = %d' %int(goodoutput))
-    #return long(goodoutput)
+    listOfIOVs = getListOfUploadedIOV('BeamSpotObjects_PCL_byLumi_v0_prompt',
+                                      246908,
+                                      300000)
+                                      
+    for dbe in listOfIOVs:
+        print vars(dbe)
