@@ -106,7 +106,7 @@ class Payload(object):
 
         return runsAndLumis
 
-    def plot(self, variable, run, iLS = -1, fLS = 1e6):
+    def plot(self, variable, run, iLS = -1, fLS = 1e6, savePdf = False):
         '''
         For a given run, plot a BS parameter as a function of LS.
         '''
@@ -133,7 +133,8 @@ class Payload(object):
         
         c1 = ROOT.TCanvas('','',1000,700)
         tge.Draw('AP')
-        c1.SaveAs('BS_plot_%d_%s.pdf' %(run, variable))
+        if savePdf: 
+            c1.SaveAs('BS_plot_%d_%s.pdf' %(run, variable))
 
 if __name__ == '__main__':
 
@@ -156,7 +157,7 @@ if __name__ == '__main__':
     
     print myPL.getProcessedLumiSections()
 
-    myPL.plot('X', 247388)
-    myPL.plot('Y', 247388)
-    myPL.plot('Z', 247388)
-    myPL.plot('sigmaZ', 247388)
+    myPL.plot('X'     , 247388, savePdf = True)
+    myPL.plot('Y'     , 247388, savePdf = True)
+    myPL.plot('Z'     , 247388, savePdf = True)
+    myPL.plot('sigmaZ', 247388, savePdf = True)
