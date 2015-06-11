@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import ROOT
+from array import array
 from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
 
 class Payload(object):
@@ -104,18 +106,57 @@ class Payload(object):
 
         return runsAndLumis
 
+    def plot(self, variable, run, iLS = -1, fLS = 1e6):
+        '''
+        For a given run, plot a BS parameter as a function of LS.
+        '''
+        # get the list of BS objects
+        myBS = self.fromTextToBS()[run]
+        
+#         iBin  = min(myBS.values())
+#         fBin  = max(myBS.values())
+#         nBins = len(range(iBin, fBin))
+
+        nBins = len(myBS.keys())
+        
+        x = array('f', myBS.keys())
+        y = array('f', [getattr(v, variable) for v in myBS.values()])
+        
+        xe = array('f', [0.5 for k in myBS.keys()])
+        ye = array('f', [getattr(v, variable + 'err') for v in myBS.values()])
+        
+        tge = ROOT.TGraphErrors(nBins, x, y, xe, ye)
+        
+        tge.SetTitle('Run ' + str(run))
+        tge.GetYaxis().SetTitle(variable)
+        tge.GetXaxis().SetTitle('Lumi Section')
+        
+        c1 = ROOT.TCanvas('','',1000,700)
+        tge.Draw('AP')
+        c1.SaveAs('BS_plot_%d_%s.pdf' %(run, variable))
 
 if __name__ == '__main__':
+
+    file = '/afs/cern.ch/user/m/manzoni/public/beamspot_validation/' \
+           'BeamFit_LumiBased_NewAlignWorkflow_alcareco_Run247388.txt'
+
+
+    myPL = Payload(file)
     
-    myPL = Payload('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_4_0_pre8/src/'\
-                   'RecoVertex/BeamSpotProducer/python/workflow/cfg/'          \
-                   'Runs2012B_FULL/Results/XRepFinal_1_195660_1.txt'           )
+#     myPL = Payload('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_4_0_pre8/src/'\
+#                    'RecoVertex/BeamSpotProducer/python/workflow/cfg/'          \
+#                    'Runs2012B_FULL/Results/XRepFinal_1_195660_1.txt'           )
     
-    myPL = Payload('payload_test.txt')
+#     myPL = Payload('payload_test.txt')
     allLines = myPL.splitBySingleFit()
     
     allBs = myPL.fromTextToBS()
-    allBs[195660][60].Dump('bs_dump_195660_LS60.txt', 'w+')
+#     allBs[195660][60].Dump('bs_dump_195660_LS60.txt', 'w+')
+    allBs[247388][60].Dump('bs_dump_247388_LS60.txt', 'w+')
     
     print myPL.getProcessedLumiSections()
 
+    myPL.plot('X', 247388)
+    myPL.plot('Y', 247388)
+    myPL.plot('Z', 247388)
+    myPL.plot('sigmaZ', 247388)
