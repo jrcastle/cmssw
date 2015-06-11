@@ -111,12 +111,9 @@ class Payload(object):
         For a given run, plot a BS parameter as a function of LS.
         '''
         # get the list of BS objects
-        myBS = self.fromTextToBS()[run]
+        myBS = {k:v for k, v in self.fromTextToBS()[run].items() 
+                if k >= iLS and k <= fLS}
         
-#         iBin  = min(myBS.values())
-#         fBin  = max(myBS.values())
-#         nBins = len(range(iBin, fBin))
-
         nBins = len(myBS.keys())
         
         x = array('f', myBS.keys())
@@ -141,23 +138,28 @@ if __name__ == '__main__':
     file = '/afs/cern.ch/user/m/manzoni/public/beamspot_validation/' \
            'BeamFit_LumiBased_NewAlignWorkflow_alcareco_Run247388.txt'
 
-
     myPL = Payload(file)
     
-#     myPL = Payload('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_4_0_pre8/src/'\
-#                    'RecoVertex/BeamSpotProducer/python/workflow/cfg/'          \
-#                    'Runs2012B_FULL/Results/XRepFinal_1_195660_1.txt'           )
+    #myPL = Payload('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_4_0_pre8/src/'\
+    #               'RecoVertex/BeamSpotProducer/python/workflow/cfg/'          \
+    #               'Runs2012B_FULL/Results/XRepFinal_1_195660_1.txt'           )
     
-#     myPL = Payload('payload_test.txt')
+    #myPL = Payload('payload_test.txt')
     allLines = myPL.splitBySingleFit()
     
     allBs = myPL.fromTextToBS()
-#     allBs[195660][60].Dump('bs_dump_195660_LS60.txt', 'w+')
+    #allBs[195660][60].Dump('bs_dump_195660_LS60.txt', 'w+')
     allBs[247388][60].Dump('bs_dump_247388_LS60.txt', 'w+')
     
     print myPL.getProcessedLumiSections()
 
-    myPL.plot('X'     , 247388, savePdf = True)
-    myPL.plot('Y'     , 247388, savePdf = True)
-    myPL.plot('Z'     , 247388, savePdf = True)
-    myPL.plot('sigmaZ', 247388, savePdf = True)
+    myPL.plot('X'         , 247388, savePdf = True)
+    myPL.plot('Y'         , 247388, savePdf = True)
+    myPL.plot('Z'         , 247388, savePdf = True)
+    myPL.plot('sigmaZ'    , 247388, savePdf = True)
+    myPL.plot('dxdz'      , 247388, savePdf = True)
+    myPL.plot('dydz'      , 247388, savePdf = True)
+    myPL.plot('beamWidthX', 247388, savePdf = True)
+    myPL.plot('beamWidthY', 247388, savePdf = True)
+
+    myPL.plot('X'         , 247388, iLS = 50, fLS = 55, savePdf = True)
