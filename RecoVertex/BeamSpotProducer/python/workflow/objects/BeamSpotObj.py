@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
+import os
 import datetime
 from math import pow, sqrt
+import xml.etree.ElementTree as et
 
 class BeamSpot(object):
     '''
@@ -40,6 +42,54 @@ class BeamSpot(object):
         self.YXerr         =  0.
         self.dxdzdydzerr   =  0.
         self.dydzdxdzerr   =  0.
+
+    def ReadXML(self, xml):
+        '''
+        Set the BeamSpot attributes from reading a xml file  or string 
+        as returned by the condDB command:
+        conddb dump 6601ff1538198fad046c18af4fb48ce3053e4c7c --format xml
+        
+        NotaBene: IOV boundaries are not saved in the xml from the DB
+                  therefore they remain set to dummy values
+        '''
+        # check whether xml is a file or a xml-like string
+        if os.path.isfile(xml):
+            filein = open(xml) 
+            lines = [line for line in filein.readlines() if 'DOCTYPE' not in line
+                     and 'boost_serialization' not in line]
+        else:
+            lines = [line for line in xml.split('\n') if 'DOCTYPE' not in line
+                     and 'boost_serialization' not in line]
+
+        xmlstring = ''.join(lines)
+                
+        # get ahold of the xml object        
+        dbentry = et.fromstring(xmlstring)
+        
+        # connect index to human readable names
+        d = { k.tag.replace('-','') : i for i, k in enumerate(dbentry)}
+
+        self.Xerr          = sqrt( float( dbentry[ d['covariance'] ].findall('item')[0].findall('item')[0].text ) )
+        self.Yerr          = sqrt( float( dbentry[ d['covariance'] ].findall('item')[1].findall('item')[1].text ) )
+        self.Zerr          = sqrt( float( dbentry[ d['covariance'] ].findall('item')[2].findall('item')[2].text ) )
+        self.sigmaZerr     = sqrt( float( dbentry[ d['covariance'] ].findall('item')[3].findall('item')[3].text ) )
+        self.dxdzerr       = sqrt( float( dbentry[ d['covariance'] ].findall('item')[4].findall('item')[4].text ) )
+        self.dydzerr       = sqrt( float( dbentry[ d['covariance'] ].findall('item')[5].findall('item')[5].text ) )
+        self.beamWidthXerr = sqrt( float( dbentry[ d['covariance'] ].findall('item')[6].findall('item')[6].text ) )
+        self.beamWidthYerr = self.beamWidthXerr 
+
+        self.Type          = int  ( dbentry[ d['type'      ] ].text                    )
+        self.X             = float( dbentry[ d['position'  ] ].findall('item')[0].text )
+        self.Y             = float( dbentry[ d['position'  ] ].findall('item')[1].text )
+        self.Z             = float( dbentry[ d['position'  ] ].findall('item')[2].text )
+        self.sigmaZ        = float( dbentry[ d['sigmaZ'    ] ].text                    )
+        self.dxdz          = float( dbentry[ d['dxdz'      ] ].text                    )
+        self.dydz          = float( dbentry[ d['dydz'      ] ].text                    )
+        self.beamWidthX    = float( dbentry[ d['beamwidthX'] ].text                    )
+        self.beamWidthY    = float( dbentry[ d['beamwidthY'] ].text                    )
+        self.EmittanceX    = float( dbentry[ d['emittanceX'] ].text                    )
+        self.EmittanceY    = float( dbentry[ d['emittanceY'] ].text                    )
+        self.betastar      = float( dbentry[ d['betaStar'  ] ].text                    )
 
     def Read(self, payload):
         '''
@@ -201,5 +251,9 @@ class BeamSpot(object):
         f.write(towrite)
        
 if __name__ == '__main__':
+#     mybs = BeamSpot()
+#     myself.Dump('bs_dump_dummy.txt', 'w+')
+
     mybs = BeamSpot()
-    myself.Dump('bs_dump_dummy.txt', 'w+')
+    mybs.ReadXML('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_0_pre4/src/RecoVertex/BeamSpotProducer/python/workflow/utils/payload_hash.xml')
+    mybs.Dump('bs_dump_from_xml.txt', 'w+')
