@@ -66,7 +66,7 @@ class Payload(object):
             bs = BeamSpot()
             bs.Read(v)
 
-            if bs.IOVfirst == bs.IOVlast:
+            if bs.IOVfirst == bs.IOVlast or bs.IOVlast == 0:
                 lsrange = bs.IOVfirst
             else:
                 lsrange = '%d-%d' %(bs.IOVfirst, bs.IOVlast)
