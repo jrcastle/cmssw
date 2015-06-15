@@ -52,7 +52,7 @@ def getListOfUploadedIOV(databaseTag, firstIOV = None, lastIOV = None, maxIOV = 
     out, err = conddb_query.communicate()
 
     # do not consider bla bla lines
-    toSkip = ['Since', '-----', '']
+    toSkip = ['Since', '-----', '','  Run']
     
     # create a container of lines from the stdout
     lines = [line for line in out.split('\n') if line[:5] not in toSkip]
