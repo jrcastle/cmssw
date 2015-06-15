@@ -2,7 +2,7 @@
 
 from subprocess import PIPE, Popen
 from RecoVertex.BeamSpotProducer.workflow.utils.errorMessages import *
-from RecoVertex.BeamSpotProducer.workflow.objects.DBEntryObj import DBEntry
+from RecoVertex.BeamSpotProducer.workflow.objects.DBEntryObj  import DBEntry
 
 def getLastUploadedIOV(databaseTag, tagName, logger = None, maxIOV = 2e13):
     '''
@@ -66,6 +66,25 @@ def getListOfUploadedIOV(databaseTag, firstIOV = None, lastIOV = None, maxIOV = 
     
     return dbEntries
 
+def dumpXMLPayloadByHash(hash):
+    '''
+    Queries the condDB and returns a string containing the XML payload
+    associated to the given hash.
+    '''
+    command = ['conddb', 'dump', hash, '--format', 'xml'] 
+    conddb_query = Popen(command, stdout = PIPE, stderr = PIPE)
+    out, err = conddb_query.communicate()
+    
+    # cluean up from what we do not want
+    outlines = [line for line in out.split('\n') if not 
+                ('ambiguous argument'  in line or
+                 'separate paths'      in line or
+                 'git'                 in line or
+                 'DOCTYPE'             in line or
+                 'boost_serialization' in line )]
+                 
+    outxml = '\n'.join(outlines)
+    return outxml
 
 if __name__ == '__main__':
 

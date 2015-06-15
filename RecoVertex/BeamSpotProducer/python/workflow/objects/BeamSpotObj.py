@@ -55,11 +55,11 @@ class BeamSpot(object):
         # check whether xml is a file or a xml-like string
         if os.path.isfile(xml):
             filein = open(xml) 
-            lines = [line for line in filein.readlines() if 'DOCTYPE' not in line
-                     and 'boost_serialization' not in line]
+            lines = [line for line in filein.readlines() if 'DOCTYPE' 
+                     not in line and 'boost_serialization' not in line]
         else:
-            lines = [line for line in xml.split('\n') if 'DOCTYPE' not in line
-                     and 'boost_serialization' not in line]
+            lines = [line for line in xml.split('\n') if 'DOCTYPE' 
+                     not in line and 'boost_serialization' not in line]
 
         xmlstring = ''.join(lines)
                 

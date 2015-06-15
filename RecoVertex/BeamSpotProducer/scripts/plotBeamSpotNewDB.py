@@ -180,11 +180,11 @@ if __name__ == '__main__':
 
     if getDBdata:
 
-        print " read DB to get list of IOVs for the given tag, limited to latest 20000 results"
-        acommand = 'conddb --nocolors list  '+ tag+' -L 20000 '  
+        print " read DB to get list of IOVs for the given tag, limited to latest 20000000 results"
+        acommand = 'conddb --nocolors list  '+ tag+' -L 200000000 '  
         if option.destDB:
 		mydestdb = option.destDB
-                acommand = 'conddb --nocolors list -c '+mydestdb+' '+ tag+' -L 20000 '
+                acommand = 'conddb --nocolors list -c '+mydestdb+' '+ tag+' -L 200000000 '
         tmpstatus = commands.getstatusoutput( acommand )
         tmplistiov = tmpstatus[1].split('\n')
         #print tmplistiov
