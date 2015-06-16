@@ -126,7 +126,7 @@ class Payload(object):
         x = array('f', [0.5 * (k.LumiLast + k.LumiFirst) for k in myBS.keys()])
         y = array('f', [getattr(v, variable) for v in myBS.values()])
         
-        xe = array('f', [0.5 * max(1, (k.LumiLast - k.LumiFirst)) for k in myBS.keys()])
+        xe = array('f', [0.5 * (1 + k.LumiLast - k.LumiFirst)) for k in myBS.keys()])
         ye = array('f', [getattr(v, variable + 'err') for v in myBS.values()])
         
         tge = ROOT.TGraphErrors(nBins, x, y, xe, ye)
