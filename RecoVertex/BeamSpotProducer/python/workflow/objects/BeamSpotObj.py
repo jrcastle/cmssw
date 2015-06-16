@@ -4,6 +4,7 @@ import os
 import datetime
 from math import pow, sqrt
 import xml.etree.ElementTree as et
+from RecoVertex.BeamSpotProducer.workflow.objects.IOVObj import IOV
 
 class BeamSpot(object):
     '''
@@ -42,7 +43,39 @@ class BeamSpot(object):
         self.YXerr         =  0.
         self.dxdzdydzerr   =  0.
         self.dydzdxdzerr   =  0.
-
+    
+    def SetIOV(self, iov):
+        '''
+        Set BeamSpot interval of validity
+        from an IOV object.
+        Works only if the IOV spans over just *one* run.
+        This descends from the way the BeamSpot thing is conceived.
+        '''
+        if iov.RunFirst != iov.RunLast:
+            raise ValueError('First Run must be equal to last Run.\nNow first:'\
+                             '%d\t last:%d' %(iov.RunFirst, iov.RunLast))
+            exit()
+            
+        self.IOVBeginTime = iov.since
+        self.IOVEndTime   = iov.till
+        self.Run          = iov.RunFirst
+        self.IOVfirst     = iov.LumiFirst
+        self.IOVlast      = iov.LumiLast
+        
+    def GetIOV(self):
+        '''
+        Returns the interval of validity of the BeamSpot object.
+        '''
+        bsIOV = IOV()
+        bsIOV.since     = self.IOVBeginTime
+        bsIOV.till      = self.IOVEndTime
+        bsIOV.RunFirst  = self.Run
+        bsIOV.RunLast   = self.Run
+        bsIOV.LumiFirst = self.IOVfirst
+        bsIOV.LumiLast  = self.IOVlast
+        
+        return bsIOV
+        
     def ReadXML(self, xml):
         '''
         Set the BeamSpot attributes from reading a xml file  or string 

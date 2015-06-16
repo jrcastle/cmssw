@@ -68,8 +68,7 @@ class Payload(object):
             bs.Read(v)
             
             if iov:
-                keyIOV = IOV(bs) # IOV with the given BS boundaries            
-                beamspots[keyIOV] = bs
+                beamspots[bs.GetIOV()] = bs
 
             else:
                 if bs.IOVfirst == bs.IOVlast:
@@ -136,7 +135,6 @@ class Payload(object):
         tge.GetYaxis().SetTitle(variable)
         tge.GetXaxis().SetTitle('Lumi Section')
         tge.SetMarkerStyle(8)
-#         tge.SetMarkerSize(5.)
        
         c1 = ROOT.TCanvas('','',1000,700)
         tge.Draw('AP')
