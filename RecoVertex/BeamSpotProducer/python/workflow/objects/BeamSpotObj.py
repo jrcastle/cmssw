@@ -155,6 +155,7 @@ class BeamSpot(object):
         EmittanceY 0.0
         BetaStar 0.0
         '''
+        import pdb ; pdb.set_trace()
         self.Run           = int  ( payload[ 0].split()[1] )
         self.IOVBeginTime  = int  ( payload[ 1].split('GMT')[1] )
         self.IOVEndTime    = int  ( payload[ 2].split('GMT')[1] )
@@ -282,6 +283,31 @@ class BeamSpot(object):
                             )
         
         f.write(towrite)
+
+    def Print(self):
+        '''
+        Nice printer.
+        '''
+        toWrite = 'X0         = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'Y0         = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'Z0         = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'BeamWidthX = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'BeamWidthY = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'sigmaZ0    = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'dxdz       = {:3.6E} +/- {:3.4E} [rad]\n'\
+                  'dydz       = {:3.6E} +/- {:3.4E} [rad]'  \
+                  .format(self.X         , self.Xerr         ,
+                          self.Y         , self.Yerr         ,
+                          self.Z         , self.Zerr         ,
+                          self.beamWidthX, self.beamWidthXerr,
+                          self.beamWidthY, self.beamWidthYerr,
+                          self.sigmaZ    , self.sigmaZerr    ,
+                          self.dxdz      , self.dxdzerr      ,
+                          self.dydz      , self.dydzerr      )
+        print toWrite
+
+ 
+    
        
 if __name__ == '__main__':
 #     mybs = BeamSpot()
@@ -290,3 +316,4 @@ if __name__ == '__main__':
     mybs = BeamSpot()
     mybs.ReadXML('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_0_pre4/src/RecoVertex/BeamSpotProducer/python/workflow/utils/payload_hash.xml')
     mybs.Dump('bs_dump_from_xml.txt', 'w+')
+    mybs.Print()
