@@ -138,16 +138,19 @@ class Payload(object):
 
             nowBS = {k:v for k, v in myBS.items() if v.Run == run}
             nBins = len(nowBS)
-            totBins += nBins
-            binLabels[totBins] = str(run)
             
             semiSum  = lambda k : 0.5 * (k.LumiLast + k.LumiFirst) * (k.LumiLast != k.LumiFirst)
             semiDiff = lambda k : 0.5 * (k.LumiLast - k.LumiFirst + 1 )
+
+#             import pdb ; pdb.set_trace()
 
             x .extend([semiSum(k) + totBins         for k in nowBS.keys()  ])
             y .extend([getattr(v, variable)         for v in nowBS.values()])
             xe.extend([semiDiff(k)                  for k in nowBS.keys()  ])
             ye.extend([getattr(v, variable + 'err') for v in nowBS.values()])
+
+            totBins += nBins
+            binLabels[totBins] = str(run)
                 
         ax = array('f', x)
         ay = array('f', y)
@@ -157,14 +160,13 @@ class Payload(object):
         
         tge = ROOT.TGraphErrors(totBins, ax, ay, axe, aye)        
         
-        print '\n\n=='
-        for index, label in binLabels.items():
-            binIndex = tge.GetXaxis().FindBin(index)
-            print index, '\t', binIndex, '\t', binIndex - index
-            print tge.GetXaxis().GetBinLabel(index)
-            tge.GetXaxis().SetBinLabel(2*index+1, label)
-
-        import pdb ; pdb.set_trace()
+#         print '\n\n=='
+#         for index, label in binLabels.items():
+#             binIndex = tge.GetXaxis().FindBin(index)
+#             print index, '\t', binIndex, '\t', binIndex - index
+#             print tge.GetXaxis().GetBinLabel(index)
+#             tge.GetXaxis().SetBinLabel(2*index+1, label)
+# 
         
         iRun = max(iRun, sorted(runs)[0])
         fRun = min(fRun, sorted(runs)[-1])
@@ -174,7 +176,7 @@ class Payload(object):
 
         if iRun == fRun:
             iLS = max(iLS, min([v.IOVfirst for v in nowBS.values()]))
-            fLS = min(fLS, max([v.IOVfirst for v in nowBS.values()]))
+            fLS = min(fLS, max([v.IOVlast  for v in nowBS.values()]))
             tge.SetTitle('Run %d Lumi %d - %d'  %(iRun, iLS, fLS))
             tge.GetXaxis().SetTitle('Lumi Section')
             
