@@ -75,6 +75,9 @@ def dumpXMLPayloadByHash(hash):
     Queries the condDB and returns a string containing the XML payload
     associated to the given hash.
     '''
+    # Example
+    # conddb dump 6766a5e19c0589612545ab201c264c4f904007db --format xml 
+
     command = ['conddb', 'dump', hash, '--format', 'xml'] 
     conddb_query = Popen(command, stdout = PIPE, stderr = PIPE)
     out, err = conddb_query.communicate()
