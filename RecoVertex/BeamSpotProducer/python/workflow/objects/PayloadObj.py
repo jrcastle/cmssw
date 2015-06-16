@@ -126,57 +126,47 @@ class Payload(object):
 
         runs = list(set(v.Run for v in myBS.values()))
         
-        x  = []
-        y  = []
-        xe = []
-        ye = []
-        
-        totBins = 0
+        lastBin = 0.
         binLabels = {}
         points = []
-
+        bins = []
+        
         for run in sorted(runs):
 
             nowBS = {k:v for k, v in myBS.items() if v.Run == run}
-            nBins = len(nowBS)
-            binLabels[totBins] = str(run)
+            binLabels[lastBin] = str(run)
             
-            semiSum  = lambda k : 0.5 * (k.LumiLast + k.LumiFirst) * (k.LumiLast > 0)
-            semiDiff = lambda k : 0.5 * (k.LumiLast - k.LumiFirst + 1 )
+            semiSum  = lambda k : 0.5 * (k.LumiLast + k.LumiFirst + (k.LumiLast == k.LumiFirst)) * (k.LumiLast > 0)
+            semiDiff = lambda k : 0.5 * (k.LumiLast - k.LumiFirst + (k.LumiLast == k.LumiFirst))
 
             for k, v in nowBS.items():
                 point = (
-                    semiSum(k) + totBins        , # x  
+                    semiSum(k) + lastBin        , # x  
                     getattr(v, variable)        , # y
                     semiDiff(k)                 , # xe
                     getattr(v, variable + 'err'), # ye
                 )
                 points.append(point)
-
-            totBins += nBins
+                bins.append(point[0]-point[2])
+                bins.append(point[0]+point[2])
+            
+            points.sort(key=lambda x: x[0])
+            lastBin = max(bins)
+            #points[-1][0] + points[-1][2]
+            #import pdb ; pdb.set_trace()
 
         points.sort(key=lambda x: x[0])
 
-        x  = [point[0] for point in points]
-        y  = [point[1] for point in points]
-        xe = [point[2] for point in points]
-        ye = [point[3] for point in points]
-        
-        ax = array('f', x)
+        bins = sorted(list(set(bins)))       
+        abins = array('f', bins)
 
-        histo = ROOT.TH1F(variable + '_support', '', len(ax) - 1, ax)
+        histo = ROOT.TH1F(variable + '_support', '', len(abins) - 1, abins)
         
         for i, item in enumerate(points):
-            histo.SetBinContent(i, item[1])
-            histo.SetBinError  (i, item[3])
-                
-        for index, label in binLabels.items():
-            binIndex = histo.GetXaxis().FindBin(x[index])
-            histo.GetXaxis().SetBinLabel(binIndex, label)
-        
-        histo.GetXaxis().LabelsOption('v')
-        histo.GetXaxis().SetTitleOffset(1.8)
-        
+            index = histo.FindBin      (points[i][0]) 
+            histo.SetBinContent(index, item[1])
+            histo.SetBinError  (index, item[3])
+                                
         iRun = max(iRun, sorted(runs)[0])
         fRun = min(fRun, sorted(runs)[-1])
         
@@ -188,6 +178,14 @@ class Payload(object):
             fLS = min(fLS, max([v.IOVlast  for v in nowBS.values()]))
             histo.SetTitle('Run %d Lumi %d - %d'  %(iRun, iLS, fLS))
             histo.GetXaxis().SetTitle('Lumi Section')
+        
+        else:
+            for index, label in binLabels.items():
+                binIndex = histo.GetXaxis().FindBin(index)
+                histo.GetXaxis().SetBinLabel(binIndex + 1, label)
+
+        histo.GetXaxis().LabelsOption('v')
+        histo.GetXaxis().SetTitleOffset(1.8)
             
         histo.GetYaxis().SetTitle('BeamSpot %s %s' 
                                   %(variable, '[cm]'*(not 'dz' in variable)))
@@ -217,7 +215,7 @@ if __name__ == '__main__':
            'beamspot_firstData_run247324_byLumi_all_lumi98_107.txt'
     file = '/afs/cern.ch/user/f/fiorendi/public/beamSpot/bs_weighted_results_246908.txt'
     #file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/utils/all_runs_16_june_2015_by_run_REMOVE_DUPLICATES.txt'
-    file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/objects/stupid_payload.txt'
+    #file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/objects/stupid_payload.txt'
     myPL = Payload(file)
     
     #myPL = Payload('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_4_0_pre8/src/'\
@@ -236,14 +234,14 @@ if __name__ == '__main__':
     
     print myPL.getProcessedLumiSections()
 
-    myPL.plot('X'         , 246908, 999999, savePdf = True)
-    myPL.plot('Y'         , 246908, 999999, savePdf = True)
-    myPL.plot('Z'         , 246908, 999999, savePdf = True)
-    myPL.plot('sigmaZ'    , 246908, 999999, savePdf = True)
-    myPL.plot('dxdz'      , 246908, 999999, savePdf = True)
-    myPL.plot('dydz'      , 246908, 999999, savePdf = True)
-    myPL.plot('beamWidthX', 246908, 999999, savePdf = True)
-    myPL.plot('beamWidthY', 246908, 999999, savePdf = True)
+#     myPL.plot('X'         , 246908, 999999, savePdf = True)
+#     myPL.plot('Y'         , 246908, 999999, savePdf = True)
+#     myPL.plot('Z'         , 246908, 999999, savePdf = True)
+#     myPL.plot('sigmaZ'    , 246908, 999999, savePdf = True)
+#     myPL.plot('dxdz'      , 246908, 999999, savePdf = True)
+#     myPL.plot('dydz'      , 246908, 999999, savePdf = True)
+#     myPL.plot('beamWidthX', 246908, 999999, savePdf = True)
+#     myPL.plot('beamWidthY', 246908, 999999, savePdf = True)
 
 #     myPL.plot('X'         , 246908, 246908, savePdf = True)
 #     myPL.plot('Y'         , 246908, 246908, savePdf = True)
@@ -251,7 +249,7 @@ if __name__ == '__main__':
 #     myPL.plot('sigmaZ'    , 246908, 246908, savePdf = True)
 #     myPL.plot('dxdz'      , 246908, 246908, savePdf = True)
 #     myPL.plot('dydz'      , 246908, 246908, savePdf = True)
-#     myPL.plot('beamWidthX', 246908, 246908, savePdf = True)
+    myPL.plot('beamWidthX', 246908, 246908, savePdf = True)
 #     myPL.plot('beamWidthY', 246908, 246908, savePdf = True)
 
 #     myPL.plot('X'         , 246908, iLS = 90, fLS = 110, savePdf = True)
