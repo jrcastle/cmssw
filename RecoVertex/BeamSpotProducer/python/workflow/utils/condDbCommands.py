@@ -44,7 +44,11 @@ def getListOfUploadedIOV(databaseTag, firstIOV = None, lastIOV = None, maxIOV = 
     This function gets returns a list of DBEntry objects.
     firstIOV, lastIOV first and last run to consider 
     '''
-        
+    
+    # Examples
+    # conddb --nocolors list BeamSpotObjects_PCL_byRun_v0_prompt -L 5
+    # conddb --nocolors list BeamSpotObjects_PCL_byLumi_v0_prompt -L 5
+    
     listIOVCommand = ['conddb', '--nocolors', 'list', 
                       databaseTag, '-L', '%d'%maxIOV]
     
