@@ -133,62 +133,76 @@ class Payload(object):
         
         totBins = 0
         binLabels = {}
-        
+        points = []
+
         for run in sorted(runs):
 
             nowBS = {k:v for k, v in myBS.items() if v.Run == run}
             nBins = len(nowBS)
+            binLabels[totBins] = str(run)
             
-            semiSum  = lambda k : 0.5 * (k.LumiLast + k.LumiFirst) * (k.LumiLast != k.LumiFirst)
+            semiSum  = lambda k : 0.5 * (k.LumiLast + k.LumiFirst) * (k.LumiLast > 0)
             semiDiff = lambda k : 0.5 * (k.LumiLast - k.LumiFirst + 1 )
 
-#             import pdb ; pdb.set_trace()
-
-            x .extend([semiSum(k) + totBins         for k in nowBS.keys()  ])
-            y .extend([getattr(v, variable)         for v in nowBS.values()])
-            xe.extend([semiDiff(k)                  for k in nowBS.keys()  ])
-            ye.extend([getattr(v, variable + 'err') for v in nowBS.values()])
+            for k, v in nowBS.items():
+                point = (
+                    semiSum(k) + totBins        , # x  
+                    getattr(v, variable)        , # y
+                    semiDiff(k)                 , # xe
+                    getattr(v, variable + 'err'), # ye
+                )
+                points.append(point)
 
             totBins += nBins
-            binLabels[totBins] = str(run)
-                
+
+        points.sort(key=lambda x: x[0])
+
+        x  = [point[0] for point in points]
+        y  = [point[1] for point in points]
+        xe = [point[2] for point in points]
+        ye = [point[3] for point in points]
+        
         ax = array('f', x)
-        ay = array('f', y)
+
+        histo = ROOT.TH1F(variable + '_support', '', len(ax) - 1, ax)
         
-        axe = array('f', xe)
-        aye = array('f', ye)
+        for i, item in enumerate(points):
+            histo.SetBinContent(i, item[1])
+            histo.SetBinError  (i, item[3])
+                
+        for index, label in binLabels.items():
+            binIndex = histo.GetXaxis().FindBin(x[index])
+            histo.GetXaxis().SetBinLabel(binIndex, label)
         
-        tge = ROOT.TGraphErrors(totBins, ax, ay, axe, aye)        
-        
-#         print '\n\n=='
-#         for index, label in binLabels.items():
-#             binIndex = tge.GetXaxis().FindBin(index)
-#             print index, '\t', binIndex, '\t', binIndex - index
-#             print tge.GetXaxis().GetBinLabel(index)
-#             tge.GetXaxis().SetBinLabel(2*index+1, label)
-# 
+        histo.GetXaxis().LabelsOption('v')
+        histo.GetXaxis().SetTitleOffset(1.8)
         
         iRun = max(iRun, sorted(runs)[0])
         fRun = min(fRun, sorted(runs)[-1])
         
-        tge.SetTitle('Run %d - %d'  %(iRun, fRun))
-        tge.GetXaxis().SetTitle('Run')
+        histo.SetTitle('Run %d - %d'  %(iRun, fRun))
+        histo.GetXaxis().SetTitle('Run')
 
         if iRun == fRun:
             iLS = max(iLS, min([v.IOVfirst for v in nowBS.values()]))
             fLS = min(fLS, max([v.IOVlast  for v in nowBS.values()]))
-            tge.SetTitle('Run %d Lumi %d - %d'  %(iRun, iLS, fLS))
-            tge.GetXaxis().SetTitle('Lumi Section')
+            histo.SetTitle('Run %d Lumi %d - %d'  %(iRun, iLS, fLS))
+            histo.GetXaxis().SetTitle('Lumi Section')
             
-        tge.GetYaxis().SetTitle('BeamSpot %s %s' 
-                                %(variable, '[cm]'*(not 'dz' in variable)))
-        tge.SetMarkerStyle(8)
-        tge.GetYaxis().SetTitleOffset(1.5)
+        histo.GetYaxis().SetTitle('BeamSpot %s %s' 
+                                  %(variable, '[cm]'*(not 'dz' in variable)))
+
+        histo.SetMarkerStyle(8)
+        histo.SetLineColor(ROOT.kBlack)
+        histo.SetMarkerColor(ROOT.kBlack)
+        histo.GetYaxis().SetTitleOffset(1.5)
        
         c1 = ROOT.TCanvas('','',1000,700)
         ROOT.gPad.SetGridx()
         ROOT.gPad.SetGridy()
-        tge.Draw('AP')
+        ROOT.gStyle.SetOptStat(False)
+        ROOT.gPad.SetBottomMargin(0.16)
+        histo.Draw()
         if savePdf: 
             c1.SaveAs('BS_plot_%d_%d_%s.pdf' %(iRun, fRun, variable))
 
@@ -202,7 +216,8 @@ if __name__ == '__main__':
     file = '/afs/cern.ch/user/f/fiorendi/public/beamSpot/'\
            'beamspot_firstData_run247324_byLumi_all_lumi98_107.txt'
     file = '/afs/cern.ch/user/f/fiorendi/public/beamSpot/bs_weighted_results_246908.txt'
-    file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/utils/all_runs_16_june_2015_by_run_REMOVE_DUPLICATES.txt'
+    #file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/utils/all_runs_16_june_2015_by_run_REMOVE_DUPLICATES.txt'
+    file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/objects/stupid_payload.txt'
     myPL = Payload(file)
     
     #myPL = Payload('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_4_0_pre8/src/'\

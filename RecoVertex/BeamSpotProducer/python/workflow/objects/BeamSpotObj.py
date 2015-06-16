@@ -155,7 +155,6 @@ class BeamSpot(object):
         EmittanceY 0.0
         BetaStar 0.0
         '''
-        import pdb ; pdb.set_trace()
         self.Run           = int  ( payload[ 0].split()[1] )
         self.IOVBeginTime  = int  ( payload[ 1].split('GMT')[1] )
         self.IOVEndTime    = int  ( payload[ 2].split('GMT')[1] )
