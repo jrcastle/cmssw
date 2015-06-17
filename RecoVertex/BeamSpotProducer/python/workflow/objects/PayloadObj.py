@@ -126,6 +126,10 @@ class Payload(object):
 
         runs = list(set(v.Run for v in myBS.values()))
         
+        byrun = False
+        if len(runs) == len(myBS):
+            byrun = True
+        
         lastBin = 0.
         binLabels = {}
         points = []
@@ -163,7 +167,7 @@ class Payload(object):
         histo = ROOT.TH1F(variable + '_support', '', len(abins) - 1, abins)
         
         for i, item in enumerate(points):
-            index = histo.FindBin      (points[i][0]) 
+            index = histo.FindBin(points[i][0]) 
             histo.SetBinContent(index, item[1])
             histo.SetBinError  (index, item[3])
                                 
@@ -182,10 +186,22 @@ class Payload(object):
         else:
             for index, label in binLabels.items():
                 binIndex = histo.GetXaxis().FindBin(index)
-                histo.GetXaxis().SetBinLabel(binIndex + 1, label)
+                histo.GetXaxis().SetBinLabel(binIndex + (not byrun), label)
+            
+        for j, bin in enumerate([point[0] for point in points]): 
+            binIndex = histo.GetXaxis().FindBin(bin)            
+            i = points[j][0] - points[j][2]
+            f = points[j][0] + points[j][2] - (points[j][2] == 0.5)
+            if not len(histo.GetXaxis().GetBinLabel(binIndex)):
+                histo.GetXaxis().SetBinLabel(binIndex, 'LS %d-%d' %(i, f))
+            else:
+                label = histo.GetXaxis().GetBinLabel(binIndex)
+                histo.GetXaxis().SetBinLabel(binIndex, 
+                                             label + (not byrun) * 
+                                             (' LS %d-%d' %(i, f)))
 
         histo.GetXaxis().LabelsOption('v')
-        histo.GetXaxis().SetTitleOffset(1.8)
+        histo.GetXaxis().SetTitleOffset(2.8)
             
         histo.GetYaxis().SetTitle('BeamSpot %s %s' 
                                   %(variable, '[cm]'*(not 'dz' in variable)))
@@ -195,11 +211,11 @@ class Payload(object):
         histo.SetMarkerColor(ROOT.kBlack)
         histo.GetYaxis().SetTitleOffset(1.5)
        
-        c1 = ROOT.TCanvas('','',1000,700)
+        c1 = ROOT.TCanvas('','',1400,800)
         ROOT.gPad.SetGridx()
         ROOT.gPad.SetGridy()
         ROOT.gStyle.SetOptStat(False)
-        ROOT.gPad.SetBottomMargin(0.16)
+        ROOT.gPad.SetBottomMargin(0.27)
         histo.Draw()
         if savePdf: 
             c1.SaveAs('BS_plot_%d_%d_%s.pdf' %(iRun, fRun, variable))
@@ -214,7 +230,7 @@ if __name__ == '__main__':
     file = '/afs/cern.ch/user/f/fiorendi/public/beamSpot/'\
            'beamspot_firstData_run247324_byLumi_all_lumi98_107.txt'
     file = '/afs/cern.ch/user/f/fiorendi/public/beamSpot/bs_weighted_results_246908.txt'
-    #file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/utils/all_runs_16_june_2015_by_run_REMOVE_DUPLICATES.txt'
+    file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/utils/all_runs_16_june_2015_by_run_REMOVE_DUPLICATES.txt'
     #file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/objects/stupid_payload.txt'
     myPL = Payload(file)
     
@@ -232,7 +248,7 @@ if __name__ == '__main__':
     #allBs[195660][60].Dump('bs_dump_195660_LS60.txt', 'w+')
     #allBs[247324][98].Dump('bs_dump_247388_LS60.txt', 'w+')
     
-    print myPL.getProcessedLumiSections()
+#     print myPL.getProcessedLumiSections()
 
 #     myPL.plot('X'         , 246908, 999999, savePdf = True)
 #     myPL.plot('Y'         , 246908, 999999, savePdf = True)
@@ -240,7 +256,7 @@ if __name__ == '__main__':
 #     myPL.plot('sigmaZ'    , 246908, 999999, savePdf = True)
 #     myPL.plot('dxdz'      , 246908, 999999, savePdf = True)
 #     myPL.plot('dydz'      , 246908, 999999, savePdf = True)
-#     myPL.plot('beamWidthX', 246908, 999999, savePdf = True)
+    myPL.plot('beamWidthX', 246908, 999999, savePdf = True)
 #     myPL.plot('beamWidthY', 246908, 999999, savePdf = True)
 
 #     myPL.plot('X'         , 246908, 246908, savePdf = True)
@@ -249,7 +265,7 @@ if __name__ == '__main__':
 #     myPL.plot('sigmaZ'    , 246908, 246908, savePdf = True)
 #     myPL.plot('dxdz'      , 246908, 246908, savePdf = True)
 #     myPL.plot('dydz'      , 246908, 246908, savePdf = True)
-    myPL.plot('beamWidthX', 246908, 246908, savePdf = True)
+#     myPL.plot('beamWidthX', 246908, 246908, savePdf = True)
 #     myPL.plot('beamWidthY', 246908, 246908, savePdf = True)
 
 #     myPL.plot('X'         , 246908, iLS = 90, fLS = 110, savePdf = True)
