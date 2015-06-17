@@ -111,7 +111,8 @@ class Payload(object):
 
         return runsAndLumis
 
-    def plot(self, variable, iRun, fRun, iLS = -1, fLS = 1e6, savePdf = False):
+    def plot(self, variable, iRun, fRun, iLS = -1, fLS = 1e6, 
+             savePdf = False, returnHisto = False):
         '''
         Plot a BS parameter as a function of LS.
         Allows multiple LS bins.
@@ -156,8 +157,6 @@ class Payload(object):
             
             points.sort(key=lambda x: x[0])
             lastBin = max(bins)
-            #points[-1][0] + points[-1][2]
-            #import pdb ; pdb.set_trace()
 
         points.sort(key=lambda x: x[0])
 
@@ -186,20 +185,23 @@ class Payload(object):
         else:
             for index, label in binLabels.items():
                 binIndex = histo.GetXaxis().FindBin(index)
-                histo.GetXaxis().SetBinLabel(binIndex + (not byrun), label)
+                histo.GetXaxis().SetBinLabel(max(1, binIndex), label)
             
+        offset  = 0
+        
         for j, bin in enumerate([point[0] for point in points]): 
-            binIndex = histo.GetXaxis().FindBin(bin)            
-            i = points[j][0] - points[j][2]
-            f = points[j][0] + points[j][2] - (points[j][2] == 0.5)
-            if not len(histo.GetXaxis().GetBinLabel(binIndex)):
-                histo.GetXaxis().SetBinLabel(binIndex, 'LS %d-%d' %(i, f))
-            else:
-                label = histo.GetXaxis().GetBinLabel(binIndex)
-                histo.GetXaxis().SetBinLabel(binIndex, 
-                                             label + (not byrun) * 
-                                             (' LS %d-%d' %(i, f)))
-
+            for k in sorted(binLabels.keys(), reverse = True):
+                if bin > k:
+                    offset = k
+                    break
+            binIndex = histo.GetXaxis().FindBin(bin)
+            i = points[j][0] - points[j][2] - offset
+            f = points[j][0] + points[j][2] - (points[j][2] == 0.5) - offset            
+            label = histo.GetXaxis().GetBinLabel(binIndex)
+            histo.GetXaxis().SetBinLabel(binIndex, 
+                                         label + (not byrun) * 
+                                         (' LS %d-%d' %(i, f)))            
+            
         histo.GetXaxis().LabelsOption('v')
         histo.GetXaxis().SetTitleOffset(2.8)
             
@@ -207,7 +209,7 @@ class Payload(object):
                                   %(variable, '[cm]'*(not 'dz' in variable)))
 
         histo.SetMarkerStyle(8)
-        histo.SetLineColor(ROOT.kBlack)
+        histo.SetLineColor(ROOT.kRed)
         histo.SetMarkerColor(ROOT.kBlack)
         histo.GetYaxis().SetTitleOffset(1.5)
        
@@ -220,6 +222,8 @@ class Payload(object):
         if savePdf: 
             c1.SaveAs('BS_plot_%d_%d_%s.pdf' %(iRun, fRun, variable))
 
+        if returnHisto:
+            return histo
 
 if __name__ == '__main__':
 
@@ -230,7 +234,7 @@ if __name__ == '__main__':
     file = '/afs/cern.ch/user/f/fiorendi/public/beamSpot/'\
            'beamspot_firstData_run247324_byLumi_all_lumi98_107.txt'
     file = '/afs/cern.ch/user/f/fiorendi/public/beamSpot/bs_weighted_results_246908.txt'
-    file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/utils/all_runs_16_june_2015_by_run_REMOVE_DUPLICATES.txt'
+    #file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/utils/all_runs_16_june_2015_by_run_REMOVE_DUPLICATES.txt'
     #file = '/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_DEVEL_X_2015-06-10-1100/src/RecoVertex/BeamSpotProducer/python/workflow/objects/stupid_payload.txt'
     myPL = Payload(file)
     
@@ -256,16 +260,16 @@ if __name__ == '__main__':
 #     myPL.plot('sigmaZ'    , 246908, 999999, savePdf = True)
 #     myPL.plot('dxdz'      , 246908, 999999, savePdf = True)
 #     myPL.plot('dydz'      , 246908, 999999, savePdf = True)
-    myPL.plot('beamWidthX', 246908, 999999, savePdf = True)
+#     myPL.plot('beamWidthX', 246908, 999999, savePdf = True)
 #     myPL.plot('beamWidthY', 246908, 999999, savePdf = True)
 
-#     myPL.plot('X'         , 246908, 246908, savePdf = True)
-#     myPL.plot('Y'         , 246908, 246908, savePdf = True)
-#     myPL.plot('Z'         , 246908, 246908, savePdf = True)
-#     myPL.plot('sigmaZ'    , 246908, 246908, savePdf = True)
-#     myPL.plot('dxdz'      , 246908, 246908, savePdf = True)
-#     myPL.plot('dydz'      , 246908, 246908, savePdf = True)
-#     myPL.plot('beamWidthX', 246908, 246908, savePdf = True)
-#     myPL.plot('beamWidthY', 246908, 246908, savePdf = True)
+    myPL.plot('X'         , 246908, 246908, savePdf = True)
+    myPL.plot('Y'         , 246908, 246908, savePdf = True)
+    myPL.plot('Z'         , 246908, 246908, savePdf = True)
+    myPL.plot('sigmaZ'    , 246908, 246908, savePdf = True)
+    myPL.plot('dxdz'      , 246908, 246908, savePdf = True)
+    myPL.plot('dydz'      , 246908, 246908, savePdf = True)
+    myPL.plot('beamWidthX', 246908, 246908, savePdf = True)
+    myPL.plot('beamWidthY', 246908, 246908, savePdf = True)
 
 #     myPL.plot('X'         , 246908, iLS = 90, fLS = 110, savePdf = True)
