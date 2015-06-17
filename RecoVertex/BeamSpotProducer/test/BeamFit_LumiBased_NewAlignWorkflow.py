@@ -23,9 +23,11 @@ process.options = cms.untracked.PSet(
 )
 
 process.load("RecoVertex.BeamSpotProducer.BeamSpot_cfi")
-process.load("Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff")
+process.load("Configuration.StandardSequences.MagneticField_cff") 
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff") 
+# this GT is for the Express, to be consistent with the file above
+# in general this GT should be for the ReReco
 process.GlobalTag.globaltag = 'GR_E_V48'
 
 ## Track refit
@@ -67,7 +69,7 @@ process.d0_phi_analyzer.BeamFitter.OutputFileName            = 'BeamFit_LumiBase
 process.d0_phi_analyzer.BeamFitter.TrackAlgorithm            = cms.untracked.vstring()
 process.d0_phi_analyzer.BeamFitter.TrackCollection           = 'TrackRefitter'
 process.d0_phi_analyzer.BeamFitter.SaveFitResults            = True
-process.d0_phi_analyzer.BeamFitter.SaveNtuple                = True
+process.d0_phi_analyzer.BeamFitter.SaveNtuple                = False
 process.d0_phi_analyzer.BeamFitter.SavePVVertices            = True
    
 process.d0_phi_analyzer.PVFitter.Apply3DFit                  = True
