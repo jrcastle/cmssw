@@ -44,7 +44,11 @@ def getListOfUploadedIOV(databaseTag, firstIOV = None, lastIOV = None, maxIOV = 
     This function gets returns a list of DBEntry objects.
     firstIOV, lastIOV first and last run to consider 
     '''
-        
+    
+    # Examples
+    # conddb --nocolors list BeamSpotObjects_PCL_byRun_v0_prompt -L 5
+    # conddb --nocolors list BeamSpotObjects_PCL_byLumi_v0_prompt -L 5
+    
     listIOVCommand = ['conddb', '--nocolors', 'list', 
                       databaseTag, '-L', '%d'%maxIOV]
     
@@ -71,6 +75,9 @@ def dumpXMLPayloadByHash(hash):
     Queries the condDB and returns a string containing the XML payload
     associated to the given hash.
     '''
+    # Example
+    # conddb dump 6766a5e19c0589612545ab201c264c4f904007db --format xml 
+
     command = ['conddb', 'dump', hash, '--format', 'xml'] 
     conddb_query = Popen(command, stdout = PIPE, stderr = PIPE)
     out, err = conddb_query.communicate()

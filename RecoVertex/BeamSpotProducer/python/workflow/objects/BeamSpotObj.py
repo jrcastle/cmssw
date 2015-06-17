@@ -4,6 +4,7 @@ import os
 import datetime
 from math import pow, sqrt
 import xml.etree.ElementTree as et
+from RecoVertex.BeamSpotProducer.workflow.objects.IOVObj import IOV
 
 class BeamSpot(object):
     '''
@@ -42,7 +43,39 @@ class BeamSpot(object):
         self.YXerr         =  0.
         self.dxdzdydzerr   =  0.
         self.dydzdxdzerr   =  0.
-
+    
+    def SetIOV(self, iov):
+        '''
+        Set BeamSpot interval of validity
+        from an IOV object.
+        Works only if the IOV spans over just *one* run.
+        This descends from the way the BeamSpot thing is conceived.
+        '''
+        if iov.RunFirst != iov.RunLast:
+            raise ValueError('First Run must be equal to last Run.\nNow first:'\
+                             '%d\t last:%d' %(iov.RunFirst, iov.RunLast))
+            exit()
+            
+        self.IOVBeginTime = iov.since
+        self.IOVEndTime   = iov.till
+        self.Run          = iov.RunFirst
+        self.IOVfirst     = iov.LumiFirst
+        self.IOVlast      = iov.LumiLast
+        
+    def GetIOV(self):
+        '''
+        Returns the interval of validity of the BeamSpot object.
+        '''
+        bsIOV = IOV()
+        bsIOV.since     = self.IOVBeginTime
+        bsIOV.till      = self.IOVEndTime
+        bsIOV.RunFirst  = self.Run
+        bsIOV.RunLast   = self.Run
+        bsIOV.LumiFirst = self.IOVfirst
+        bsIOV.LumiLast  = self.IOVlast
+        
+        return bsIOV
+        
     def ReadXML(self, xml):
         '''
         Set the BeamSpot attributes from reading a xml file  or string 
@@ -249,6 +282,31 @@ class BeamSpot(object):
                             )
         
         f.write(towrite)
+
+    def Print(self):
+        '''
+        Nice printer.
+        '''
+        toWrite = 'X0         = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'Y0         = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'Z0         = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'BeamWidthX = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'BeamWidthY = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'sigmaZ0    = {:3.6f} +/- {:3.4E} [cm]\n' \
+                  'dxdz       = {:3.6E} +/- {:3.4E} [rad]\n'\
+                  'dydz       = {:3.6E} +/- {:3.4E} [rad]'  \
+                  .format(self.X         , self.Xerr         ,
+                          self.Y         , self.Yerr         ,
+                          self.Z         , self.Zerr         ,
+                          self.beamWidthX, self.beamWidthXerr,
+                          self.beamWidthY, self.beamWidthYerr,
+                          self.sigmaZ    , self.sigmaZerr    ,
+                          self.dxdz      , self.dxdzerr      ,
+                          self.dydz      , self.dydzerr      )
+        print toWrite
+
+ 
+    
        
 if __name__ == '__main__':
 #     mybs = BeamSpot()
@@ -257,3 +315,4 @@ if __name__ == '__main__':
     mybs = BeamSpot()
     mybs.ReadXML('/afs/cern.ch/work/m/manzoni/beamspot/CMSSW_7_5_0_pre4/src/RecoVertex/BeamSpotProducer/python/workflow/utils/payload_hash.xml')
     mybs.Dump('bs_dump_from_xml.txt', 'w+')
+    mybs.Print()
