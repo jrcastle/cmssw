@@ -1,5 +1,19 @@
 from ROOT               import TFile, TTree, gDirectory, TH1F, TH2F, TCanvas, TLegend
 from DataFormats.FWLite import Events
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.usage = '''
+'''
+parser.add_option("-i"  , "--input"     , dest = "input"     ,  help = "input file"      , default = ''                )
+parser.add_option("-o"  , "--output"    , dest = "output"    ,  help = "output file"     , default = 'out_test.root'   )
+parser.add_option("-s"  , "--startlumi" , dest = "startlumi" ,  help = "starting LS"     , default = '1'               )
+parser.add_option("-e"  , "--endlumi"   , dest = "endlumi"   ,  help = "ending LS"       , default = '100'             )
+# parser.add_option("-c"  , "--compare"   , dest = "compfile"  ,  help = "file to compare" , default = ''                )
+
+(options,args) = parser.parse_args()	
+if not options.input:   
+  parser.error('Input filename not given')
 
 # define track selection
 trk_MinpT_         = 1.0
@@ -66,7 +80,9 @@ def fillHistos(tree    ,
   lumi_ntrks = {}
 
   for i, ev in enumerate(tree):
-#     if i > 1000: break
+    if i % 10000 == 0:
+      print i
+    if i > 100000: break
     try:
       lumi_ntrks[ev.lumi]
     except:
@@ -102,150 +118,163 @@ def fillHistos(tree    ,
 
 
   
+  
+  
+file_base = TFile.Open(options.input, 'r')
+tree_base = file_base.Get('mytree')
 
+try:
+  tree_base.GetEntries()
+except:
+  print 'track tree not found'
+  exit()
 
-file_pcl = TFile.Open('run207231_PCLReplay_addCombinedResultsTree.root', 'r')
-tree_pcl = file_pcl.Get('mytree')
+print 'output filename:' + options.output
+  
 
-file_se = TFile.Open('run207231_StreamExpress_addCombinedResultsTree.root', 'r')
-tree_se = file_se.Get('mytree')
+list_base  = []
+nbins      = int(options.endlumi) - int(options.startlumi)
 
-list_pcl = []
-list_se  = []
-
-print 'files opened'
-
-# pcl histos
-hlumi_pcl       = TH1F ('hlumi_pcl'      , 'hlumi_pcl'      ,   21,   690,  711)
-hntracks_pcl    = TH2F ('hntracks_pcl'   , 'hntracks_pcl'   ,   21,   690,  711, 2000, 10000, 50000)
-hgtracks_pcl    = TH2F ('hgtracks_pcl'   , 'hgtracks_pcl'   ,   21,   690,  711, 2000, 10000, 50000)
-hphi_d0_pcl     = TH2F ('hphi_d0_pcl'    , 'hphi_d0_pcl'    ,  314, -3.14, 3.14, 500, -0.5, 0.5)
-hphi_d0_g_pcl   = TH2F ('hphi_d0_g_pcl'  , 'hphi_d0_g_pcl'  ,  314, -3.14, 3.14, 500, -0.5, 0.5)
-   
-hpixL_pcl       = TH1F ('hpixL_pcl'      , 'hpixL_pcl'      ,   20,   0,  20)
-htotL_pcl       = TH1F ('htotL_pcl'      , 'htotL_pcl'      ,   20,   0,  20)
-hchi2_pcl       = TH1F ('hchi2_pcl'      , 'hchi2_pcl'      ,  100,   0,  10)
-hpt_pcl         = TH1F ('hpt_pcl'        , 'hpt_pcl'        ,   70,   0, 100)
-hd0_pcl         = TH1F ('hd0_pcl'        , 'hd0_pcl'        ,  100,   0,  10)
-hz0_pcl         = TH1F ('hz0_pcl'        , 'hz0_pcl'        ,  200, -20,  20)
-heta_pcl        = TH1F ('heta_pcl'       , 'heta_pcl'       ,   60,  -3,   3)
-
-hpixL_good_pcl  = TH1F ('hpixL_good_pcl' , 'hpixL_good_pcl' ,   20,   0,  20)
-htotL_good_pcl  = TH1F ('htotL_good_pcl' , 'htotL_good_pcl' ,   20,   0,  20)
-hchi2_good_pcl  = TH1F ('hchi2_good_pcl' , 'hchi2_good_pcl' ,  100,   0,  10)
-hpt_good_pcl    = TH1F ('hpt_good_pcl'   , 'hpt_good_pcl'   ,   70,   0, 100)
-hd0_good_pcl    = TH1F ('hd0_good_pcl'   , 'hd0_good_pcl'   ,  100,   0,  10)
-hz0_good_pcl    = TH1F ('hz0_good_pcl'   , 'hz0_good_pcl'   ,  200, -20,  20)
-heta_good_pcl   = TH1F ('heta_good_pcl'  , 'heta_good_pcl'  ,   60,  -3,   3)
-
-# stream express histos
-hlumi_se        = TH1F ('hlumi_se'       , 'hlumi_se'       ,   21, 690,  711)
-hntracks_se     = TH2F ('hntracks_se'    , 'hntracks_se'    ,   21, 690,  711, 2000, 10000, 50000)
-hgtracks_se     = TH2F ('hgtracks_se'    , 'hgtracks_se'    ,   21, 690,  711, 2000, 10000, 50000)
-hphi_d0_se      = TH2F ('hphi_d0_se'     , 'hphi_d0_se'     ,  314, -3.14, 3.14, 500, -0.5, 0.5)
-hphi_d0_g_se    = TH2F ('hphi_d0_g_se'   , 'hphi_d0_g_se'   ,  314, -3.14, 3.14, 500, -0.5, 0.5)
+hlumi_base        = TH1F ('hlumi_base'       , 'hlumi_base'       ,   nbins, int(options.startlumi),  int(options.endlumi))
+hntracks_base     = TH2F ('hntracks_base'    , 'hntracks_base'    ,   nbins, int(options.startlumi),  int(options.endlumi), 1000, 0, 50000)
+hgtracks_base     = TH2F ('hgtracks_base'    , 'hgtracks_base'    ,   nbins, int(options.startlumi),  int(options.endlumi), 1000, 0, 50000)
+hphi_d0_base      = TH2F ('hphi_d0_base'     , 'hphi_d0_base'     ,  314, -3.14, 3.14, 500, -0.5, 0.5)
+hphi_d0_g_base    = TH2F ('hphi_d0_g_base'   , 'hphi_d0_g_base'   ,  314, -3.14, 3.14, 500, -0.5, 0.5)
          
-hpixL_se        = TH1F ('hpixL_se'       , 'hpixL_se'       ,   20,   0,  20)
-htotL_se        = TH1F ('htotL_se'       , 'htotL_se'       ,   20,   0,  20)
-hchi2_se        = TH1F ('hchi2_se'       , 'hchi2_se'       ,  100,   0,  10)
-hpt_se          = TH1F ('hpt_se'         , 'hpt_se'         ,   70,   0, 100)
-hd0_se          = TH1F ('hd0_se'         , 'hd0_se'         ,  100,   0,  10)
-hz0_se          = TH1F ('hz0_se'         , 'hz0_se'         ,  200, -20,  20)
-heta_se         = TH1F ('heta_se'        , 'heta_se'        ,   60,  -3,   3)
+hpixL_base        = TH1F ('hpixL_base'       , 'hpixL_base'       ,   20,   0,  20)
+htotL_base        = TH1F ('htotL_base'       , 'htotL_base'       ,   20,   0,  20)
+hchi2_base        = TH1F ('hchi2_base'       , 'hchi2_base'       ,  100,   0,  10)
+hpt_base          = TH1F ('hpt_base'         , 'hpt_base'         ,   70,   0, 100)
+hd0_base          = TH1F ('hd0_base'         , 'hd0_base'         ,  100,   0,  10)
+hz0_base          = TH1F ('hz0_base'         , 'hz0_base'         ,  200, -20,  20)
+heta_base         = TH1F ('heta_base'        , 'heta_base'        ,   60,  -3,   3)
 
-hpixL_good_se   = TH1F ('hpixL_good_se'  , 'hpixL_good_se'  ,   20,   0,  20)
-htotL_good_se   = TH1F ('htotL_good_se'  , 'htotL_good_se'  ,   20,   0,  20)
-hchi2_good_se   = TH1F ('hchi2_good_se'  , 'hchi2_good_se'  ,  100,   0,  10)
-hpt_good_se     = TH1F ('hpt_good_se'    , 'hpt_good_se'    ,   70,   0, 100)
-hd0_good_se     = TH1F ('hd0_good_se'    , 'hd0_good_se'    ,  100,   0,  10)
-hz0_good_se     = TH1F ('hz0_good_se'    , 'hz0_good_se'    ,  200, -20,  20)
-heta_good_se    = TH1F ('heta_good_se'   , 'heta_good_se'   ,   60,  -3,   3)
+hpixL_good_base   = TH1F ('hpixL_good_base'  , 'hpixL_good_base'  ,   20,   0,  20)
+htotL_good_base   = TH1F ('htotL_good_base'  , 'htotL_good_base'  ,   20,   0,  20)
+hchi2_good_base   = TH1F ('hchi2_good_base'  , 'hchi2_good_base'  ,  100,   0,  10)
+hpt_good_base     = TH1F ('hpt_good_base'    , 'hpt_good_base'    ,   70,   0, 100)
+hd0_good_base     = TH1F ('hd0_good_base'    , 'hd0_good_base'    ,  100,   0,  10)
+hz0_good_base     = TH1F ('hz0_good_base'    , 'hz0_good_base'    ,  200, -20,  20)
+heta_good_base    = TH1F ('heta_good_base'   , 'heta_good_base'   ,   60,  -3,   3)
 
 
-hpixL_se.GetXaxis().SetTitle('# pixel layer')
-htotL_se.GetXaxis().SetTitle('# total layer')
-hchi2_se.GetXaxis().SetTitle('# norm chi2'  )
-hpt_se  .GetXaxis().SetTitle('p_{T}'        )
-hd0_se  .GetXaxis().SetTitle('d0'           )
-hz0_se  .GetXaxis().SetTitle('z0'           )
-heta_se .GetXaxis().SetTitle('#eta'         )
+hpixL_base.GetXaxis().SetTitle('# pixel layer')
+htotL_base.GetXaxis().SetTitle('# total layer')
+hchi2_base.GetXaxis().SetTitle('# norm chi2'  )
+hpt_base  .GetXaxis().SetTitle('p_{T} [GeV]'  )
+hd0_base  .GetXaxis().SetTitle('d0'           )
+hz0_base  .GetXaxis().SetTitle('z0'           )
+heta_base .GetXaxis().SetTitle('#eta'         )
 
 print 'histos created'
 
-fillHistos(tree_pcl       , 
-           hlumi_pcl      , 
-           hntracks_pcl   ,
-           hgtracks_pcl   ,
-           hpixL_pcl      ,
-           htotL_pcl      ,
-           hchi2_pcl      ,
-           hpt_pcl        ,
-           hd0_pcl        ,
-           hz0_pcl        ,
-           heta_pcl       ,
-           hphi_d0_pcl    ,
-           hpixL_good_pcl ,
-           htotL_good_pcl ,
-           hchi2_good_pcl ,
-           hpt_good_pcl   ,
-           hd0_good_pcl   ,
-           hz0_good_pcl   ,
-           heta_good_pcl  ,
-           hphi_d0_g_pcl
+fillHistos(tree_base        , 
+           hlumi_base       , 
+           hntracks_base    ,
+           hgtracks_base    ,
+           hpixL_base       ,
+           htotL_base       ,
+           hchi2_base       ,
+           hpt_base         ,
+           hd0_base         ,
+           hz0_base         ,
+           heta_base        ,
+           hphi_d0_base     ,
+           hpixL_good_base  ,
+           htotL_good_base  ,
+           hchi2_good_base  ,
+           hpt_good_base    ,
+           hd0_good_base    ,
+           hz0_good_base    ,
+           heta_good_base   ,
+           hphi_d0_g_base   ,
            )
 
-print 'filled 1'
+print 'filled '
 
-fillHistos(tree_se        , 
-           hlumi_se       , 
-           hntracks_se    ,
-           hgtracks_se    ,
-           hpixL_se       ,
-           htotL_se       ,
-           hchi2_se       ,
-           hpt_se         ,
-           hd0_se         ,
-           hz0_se         ,
-           heta_se        ,
-           hphi_d0_se     ,
-           hpixL_good_se  ,
-           htotL_good_se  ,
-           hchi2_good_se  ,
-           hpt_good_se    ,
-           hd0_good_se    ,
-           hz0_good_se    ,
-           heta_good_se   ,
-           hphi_d0_g_se   ,
-           )
+list_base.extend ((    hpixL_base,       htotL_base,       hchi2_base,       hpt_base,       hd0_base,       hz0_base,       heta_base ))
+list_base.extend((hpixL_good_base,  htotL_good_base,  hchi2_good_base,  hpt_good_base,  hd0_good_base,  hz0_good_base,  heta_good_base ))
 
-print 'filled 2'
 
-list_pcl.extend((hpixL_pcl,           htotL_pcl,      hchi2_pcl,      hpt_pcl,      hd0_pcl,      hz0_pcl,      heta_pcl))
-list_pcl.extend((hpixL_good_pcl, htotL_good_pcl, hchi2_good_pcl, hpt_good_pcl, hd0_good_pcl, hz0_good_pcl, heta_good_pcl))
+# if options.compfile:  
+# 
+#   file_comp = TFile.Open(options.compfile, 'r')
+#   tree_comp = file_comp.Get('mytree')
+# 
+#   try:
+#     tree_comp.GetEntries()
+#   except:
+#     print 'track tree not found in comparison file'
+#     exit()
 
-list_se.extend ((    hpixL_se,       htotL_se,       hchi2_se,       hpt_se,       hd0_se,       hz0_se,       heta_se ))
-list_se.extend((hpixL_good_se,  htotL_good_se,  hchi2_good_se,  hpt_good_se,  hd0_good_se,  hz0_good_se,  heta_good_se ))
+  # comparison histos
+#   hlumi_comp       = TH1F ('hlumi_comp'      , 'hlumi_comp'      ,  nbins, int(options.startlumi),  int(options.endlumi))
+#   hntracks_comp    = TH2F ('hntracks_comp'   , 'hntracks_comp'   ,  nbins, int(options.startlumi),  int(options.endlumi), 1000, 0, 50000)
+#   hgtracks_comp    = TH2F ('hgtracks_comp'   , 'hgtracks_comp'   ,  nbins, int(options.startlumi),  int(options.endlumi), 1000, 0, 50000)
+#   hphi_d0_comp     = TH2F ('hphi_d0_comp'    , 'hphi_d0_comp'    ,  314, -3.14, 3.14, 500, -0.5, 0.5)
+#   hphi_d0_g_comp   = TH2F ('hphi_d0_g_comp'  , 'hphi_d0_g_comp'  ,  314, -3.14, 3.14, 500, -0.5, 0.5)
+#  
+#   hpixL_comp       = TH1F ('hpixL_comp'      , 'hpixL_comp'      ,   20,   0,  20)
+#   htotL_comp       = TH1F ('htotL_comp'      , 'htotL_comp'      ,   20,   0,  20)
+#   hchi2_comp       = TH1F ('hchi2_comp'      , 'hchi2_comp'      ,  100,   0,  10)
+#   hpt_comp         = TH1F ('hpt_comp'        , 'hpt_comp'        ,   70,   0, 100)
+#   hd0_comp         = TH1F ('hd0_comp'        , 'hd0_comp'        ,  100,   0,  10)
+#   hz0_comp         = TH1F ('hz0_comp'        , 'hz0_comp'        ,  200, -20,  20)
+#   heta_comp        = TH1F ('heta_comp'       , 'heta_comp'       ,   60,  -3,   3)
+# 
+#   hpixL_good_comp  = TH1F ('hpixL_good_comp' , 'hpixL_good_comp' ,   20,   0,  20)
+#   htotL_good_comp  = TH1F ('htotL_good_comp' , 'htotL_good_comp' ,   20,   0,  20)
+#   hchi2_good_comp  = TH1F ('hchi2_good_comp' , 'hchi2_good_comp' ,  100,   0,  10)
+#   hpt_good_comp    = TH1F ('hpt_good_comp'   , 'hpt_good_comp'   ,   70,   0, 100)
+#   hd0_good_comp    = TH1F ('hd0_good_comp'   , 'hd0_good_comp'   ,  100,   0,  10)
+#   hz0_good_comp    = TH1F ('hz0_good_comp'   , 'hz0_good_comp'   ,  200, -20,  20)
+#   heta_good_comp   = TH1F ('heta_good_comp'  , 'heta_good_comp'  ,   60,  -3,   3)
+# 
+#   list_comp = []
+# 
+#   fillHistos(tree_comp       , 
+#              hlumi_comp      , 
+#              hntracks_comp   ,
+#              hgtracks_comp   ,
+#              hpixL_comp      ,
+#              htotL_comp      ,
+#              hchi2_comp      ,
+#              hpt_comp        ,
+#              hd0_comp        ,
+#              hz0_comp        ,
+#              heta_comp       ,
+#              hphi_d0_comp    ,
+#              hpixL_good_comp ,
+#              htotL_good_comp ,
+#              hchi2_good_comp ,
+#              hpt_good_comp   ,
+#              hd0_good_comp   ,
+#              hz0_good_comp   ,
+#              heta_good_comp  ,
+#              hphi_d0_g_comp
+#              )
+# 
+#   print 'filled comparison histos'
+# 
+#   list_comp.extend((hpixL_comp,           htotL_comp,      hchi2_comp,      hpt_comp,      hd0_comp,      hz0_comp,      heta_comp))
+#   list_comp.extend((hpixL_good_comp, htotL_good_comp, hchi2_good_comp, hpt_good_comp, hd0_good_comp, hz0_good_comp, heta_good_comp))
+# 
+#   for i in list_comp:
+#     i.SetLineColor(2)
+# 
+# 
 
-for i in list_pcl:
-  i.SetLineColor(2)
   
 
 
-outfile = TFile.Open('histos_ReplayVsStreamExpress.root', 'recreate')
+outfile = TFile.Open(options.output, 'recreate')
 outfile.cd()
-for i in list_pcl:
+for i in list_base:
   i.Write()
-for i in list_se:
-  i.Write()
-hntracks_pcl  .Write()
-hgtracks_pcl  .Write()
-hphi_d0_pcl   .Write()
-hphi_d0_g_pcl .Write()
-hntracks_se   .Write()
-hgtracks_se   .Write()
-hphi_d0_se    .Write()
-hphi_d0_g_se  .Write()
+hntracks_base   .Write()
+hgtracks_base   .Write()
+hphi_d0_base    .Write()
+hphi_d0_g_base  .Write()
 
 outfile.Close() 
    
-# file.Close()
