@@ -1,49 +1,25 @@
-import ROOT
-from ROOT import TFile, TTree, gDirectory, TH1F, TH2F, TCanvas, TLegend, gPad, gStyle, TGaxis
-import optparse
+from argparse import ArgumentParser
 
-parser = OptionParser()
-# parser.usage = "%prog [options] filename"
-parser.add_option("-i"  , "--input"     , dest = "input"     ,  help = "input file"      , default = ''                        )
-parser.add_option("-o"  , "--output"    , dest = "output"    ,  help = "output file"     , default = 'out_test.root'           )
-parser.add_option("-s"  , "--startlumi" , dest = "startlumi" ,  help = "starting LS"     , default = '1'                       )
-parser.add_option("-e"  , "--endlumi"   , dest = "endlumi"   ,  help = "ending LS"       , default = '100'                     )
-parser.add_option("-c"  , "--compare"   , dest = "compfile"  ,  help = "file to compare" , default = ''                        )
-parser.add_option("-k"  , "--kind"      , dest = "kind"      ,  help = "track or PV"     , default = 'track'                   )
-parser.add_option("-r"  , "--run"       , dest = "run"       ,  help = "run number"      , default = ''                        )
-parser.add_option("-l"  , "--leg"       , dest = "legend"    ,  help = "legend entries"  , default = ''                        )
-parser.add_option("-d"  , "--diff"      , dest = "diff"      ,  help = "plot differences", default = False, action='store_true')
+parser = ArgumentParser()
+parser.add_argument("-i"  , "--input"     , dest = "input"     ,  help = "input file"      , default = ''                        )
+parser.add_argument("-o"  , "--output"    , dest = "output"    ,  help = "output file"     , default = 'out_test.root'           )
+parser.add_argument("-s"  , "--startlumi" , dest = "startlumi" ,  help = "starting LS"     , default = '1'                       )
+parser.add_argument("-e"  , "--endlumi"   , dest = "endlumi"   ,  help = "ending LS"       , default = '100'                     )
+parser.add_argument("-c"  , "--compare"   , dest = "compfile"  ,  help = "file to compare" , default = ''                        )
+parser.add_argument("-k"  , "--kind"      , dest = "kind"      ,  help = "track or PV"     , default = 'track'                   )
+parser.add_argument("-r"  , "--run"       , dest = "run"       ,  help = "run number"      , default = ''                        )
+parser.add_argument("-l"  , "--leg"       , dest = "legend"    ,  help = "legend entries"  , default = ''                        )
+parser.add_argument("-d"  , "--diff"      , dest = "diff"      ,  help = "plot differences", default = False, action='store_true')
 
-(options,args) = parser.parse_args()	
+options = parser.parse_args()
 if not options.input:   
   parser.error('Input filename not given')
 if not options.run:   
   parser.error('Run number not given')
 
 
-'''
-import optparse
-
-parser = optparse.OptionParser()
-parser.add_option('--no-foo', action="store_true", 
-                  default=False, 
-                  dest="foo",
-                  help="Turn off foo",
-                  )
-parser.add_option('--with', action="store", help="Include optional feature",
-                  metavar='feature_NAME')
-
-parser.parse_args()
-
-
-'''
-
-
-
-
-
-
-
+import ROOT
+from   ROOT     import TFile, TTree, gDirectory, TH1F, TH2F, TCanvas, TLegend, gPad, gStyle, TGaxis
 
 
 gStyle.SetTitleAlign(23)
@@ -73,30 +49,30 @@ if 'PV' in options.kind:
   TGaxis.SetMaxDigits(3)
 
   variables = [
-    # varName    # x-axis title    # y-axis title          # x-axis range  # legend position        # y-axis low pad  # rebin  # log y
-    ('hpvx'      , 'PV x [cm]'     , '# selected PV'     , ( 0.0, 0.13),  (0.69, 0.89, 0.55, 0.65), (-0.5, 0.5 ),      4,      False),
-    ('hpvy'      , 'PV y [cm]'     , '# selected PV'     , ( 0.0, 0.13),  (0.69, 0.89, 0.55, 0.65), (-0.5, 0.5 ),      4,      False),
-    ('hpvz'      , 'PV z [cm]'     , '# selected PV'     , (-20 , 20  ),  (0.69, 0.89, 0.55, 0.65), (-0.5, 0.5 ),      4,      False),
+    # varName    # x-axis title    # y-axis title          # x-axis range  # legend position         # y-axis low pad  # rebin  # log y
+    ('hpvx'      , 'PV x [cm]'     , '# selected PV'     , ( 0.04, 0.16),  (0.69, 0.89, 0.55, 0.65), (-0.5, 0.5 ),      4,      False),
+    ('hpvy'      , 'PV y [cm]'     , '# selected PV'     , ( 0.0,  0.13),  (0.69, 0.89, 0.55, 0.65), (-0.5, 0.5 ),      4,      False),
+    ('hpvz'      , 'PV z [cm]'     , '# selected PV'     , (-20 ,  20  ),  (0.69, 0.89, 0.55, 0.65), (-0.5, 0.5 ),      4,      False),
   ]
 
-if 'track' in options.kind:
+elif 'track' in options.kind:
   variables = [
-    # varName    # x-axis title    # y-axis title          # x-axis range  # legend position        # y-axis low pad  # rebin  # log y
-    ('hpixL'     , '# pixel layer' , '# tracks'          , (   0,   7 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.5 ),      1,       False),
-    ('htotL'     , '# total layer' , '# tracks'          , (   3,  20 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 1   ),      1,       False),
-    ('hchi2'     , '# norm chi2'   , '# tracks'          , (   0,   6 ),  (0.69, 0.89, 0.55, 0.65), (-1  , 0.5 ),      1,       False),
-    ('hpt'       , 'p_{T} [GeV]'   , '# tracks'          , (   0, 100 ),  (0.69, 0.89, 0.55, 0.65), (-0.5, 1   ),      1,        True),
-    ('hd0'       , 'd0 [cm]'       , '# tracks'          , (   0,  10 ),  (0.69, 0.89, 0.55, 0.65), (0   , 0.5 ),      1,        True),
-    ('hz0'       , 'z0 [cm]'       , '# tracks'          , ( -20,  20 ),  (0.69, 0.89, 0.55, 0.65), (0.  , 0.65),      1,       False),
-    ('heta'      , '#eta'          , '# tracks'          , (  -3,   3 ),  (0.69, 0.89, 0.55, 0.65), (0.  , 0.2 ),      1,       False),
-    ('hpixL_good', '# pixel layer' , '# selected tracks' , (   0,   7 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.5 ),      1,       False),
-    ('htotL_good', '# total layer' , '# selected tracks' , (   3,  20 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.2 ),      1,       False),
-    ('hchi2_good', '# norm chi2'   , '# selected tracks' , (   0,   6 ),  (0.69, 0.89, 0.55, 0.65), (-2  , 0.2 ),      1,       False),
-    ('hpt_good'  , 'p_{T} [GeV]'   , '# selected tracks' , (   0, 100 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.5 ),      1,        True),
-    ('hd0_good'  , 'd0 [cm]'       , '# selected tracks' , (   0,   2 ),  (0.69, 0.89, 0.55, 0.65), ( 0  , 0.4 ),      1,        True),
-    ('hz0_good'  , 'z0 [cm]'       , '# selected tracks' , ( -20,  20 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.5 ),      1,       False),
-    ('heta_good' , '#eta'          , '# selected tracks' , (  -3,   3 ),  (0.69, 0.89, 0.55, 0.65), ( 0. ,  .1 ),      1,       False)
-  ]
+    # varName    # x-axis title    # y-axis title          # x-axis range  # legend position         # y-axis low pad  # rebin  # log y
+    ('hpixL'     , '# pixel layer' , '# tracks'          , (   0,    7 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.5 ),      1,       False),
+    ('htotL'     , '# total layer' , '# tracks'          , (   3,   20 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 1   ),      1,       False),
+    ('hchi2'     , '# norm chi2'   , '# tracks'          , (   0,    6 ),  (0.69, 0.89, 0.55, 0.65), (-1  , 0.5 ),      1,       False),
+    ('hpt'       , 'p_{T} [GeV]'   , '# tracks'          , (   0,  100 ),  (0.69, 0.89, 0.55, 0.65), (-0.5, 1   ),      1,        True),
+    ('hd0'       , 'd0 [cm]'       , '# tracks'          , (   0,   10 ),  (0.69, 0.89, 0.55, 0.65), (0   , 0.5 ),      1,        True),
+    ('hz0'       , 'z0 [cm]'       , '# tracks'          , ( -20,   20 ),  (0.69, 0.89, 0.55, 0.65), (0.  , 0.65),      1,       False),
+    ('heta'      , '#eta'          , '# tracks'          , (  -3,    3 ),  (0.69, 0.89, 0.55, 0.65), (0.  , 0.2 ),      1,       False),
+    ('hpixL_good', '# pixel layer' , '# selected tracks' , (   0,    7 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.5 ),      1,       False),
+    ('htotL_good', '# total layer' , '# selected tracks' , (   3,   20 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.2 ),      1,       False),
+    ('hchi2_good', '# norm chi2'   , '# selected tracks' , (   0,    6 ),  (0.69, 0.89, 0.55, 0.65), (-2  , 0.2 ),      1,       False),
+    ('hpt_good'  , 'p_{T} [GeV]'   , '# selected tracks' , (   0,  100 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.5 ),      1,        True),
+    ('hd0_good'  , 'd0 [cm]'       , '# selected tracks' , (   0,    2 ),  (0.69, 0.89, 0.55, 0.65), ( 0  , 0.4 ),      1,        True),
+    ('hz0_good'  , 'z0 [cm]'       , '# selected tracks' , ( -20,   20 ),  (0.69, 0.89, 0.55, 0.65), (-0.1, 0.5 ),      1,       False),
+    ('heta_good' , '#eta'          , '# selected tracks' , (  -3,    3 ),  (0.69, 0.89, 0.55, 0.65), ( 0. ,  .1 ),      1,       False)
+]
 
 else:
   print 'no category selected'
@@ -201,13 +177,12 @@ for var in variables:
       h_ratio.GetYaxis().SetTitleOffset(1)
       h_ratio.GetYaxis().SetTitle('difference/' + entry_base)
 
-      c.SetLogy(var[6])
+      c.SetLogy(var[7])
 
   if options.compfile:
     c.SaveAs('h_compare_' + var[0] + '_' + options.run + '.pdf')
   else: 
     c.SaveAs('h_' + var[0] + '_' + options.run + '.pdf')
-
 
 
 
@@ -262,7 +237,7 @@ for ivar in lumivar:
       l.Draw()
 
   gPad.SetGridx()
-  c2.SetLogy(var[5])
+  c2.SetLogy(ivar[5])
   
   if options.compfile:
     c2.SaveAs('h_compare_' + ivar[0] + '_' + options.run + '.pdf')

@@ -1,5 +1,19 @@
 from ROOT               import TFile, TTree, gDirectory, TH1F, TH2F, TCanvas, TLegend
 from DataFormats.FWLite import Events
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.usage = '''
+'''
+parser.add_option("-i"  , "--input"     , dest = "input"     ,  help = "input file"      , default = ''                )
+parser.add_option("-o"  , "--output"    , dest = "output"    ,  help = "output file"     , default = 'out_test.root'   )
+parser.add_option("-s"  , "--startlumi" , dest = "startlumi" ,  help = "starting LS"     , default = '1'               )
+parser.add_option("-e"  , "--endlumi"   , dest = "endlumi"   ,  help = "ending LS"       , default = '100'             )
+
+(options,args) = parser.parse_args()	
+if not options.input:   
+  parser.error('Input filename not given')
+
 
 class pv(object):
   def __init__(self, event):
@@ -25,7 +39,7 @@ def fillHistos(tree    ,
   lumi_npv = {}
 
   for i, ev in enumerate(tree):
-    #if i > 100000: break
+    if i > 100000: break
     try:
       lumi_npv[ev.lumi]
     except:
@@ -43,74 +57,51 @@ def fillHistos(tree    ,
     hnpv.Fill(k, len(v))
 
 
-file_pcl = TFile.Open('run207231_PCLReplay_addCombinedResultsTree.root', 'r')
-tree_pcl = file_pcl.Get('PrimaryVertices')
+file_base = TFile.Open(options.input, 'r')
+tree_base = file_base.Get('PrimaryVertices')
 
-file_se = TFile.Open('run207231_StreamExpress_addCombinedResultsTree.root', 'r')
-tree_se = file_se.Get('PrimaryVertices')
+try:
+  tree_base.GetEntries()
+except:
+  print 'pv tree not found'
+  exit()
 
-list_pcl = []
-list_se  = []
+print 'output filename:' + options.output
 
-print 'files opened'
+list_base  = []
+nbins      = int(options.endlumi) - int(options.startlumi)
 
-# pcl histos
-hlumi_pcl   = TH1F ('hlumi_pcl' , 'hlumi_pcl'  ,   21,   690,  711)
-hnpv_pcl    = TH2F ('hnpv_pcl'  , 'hnpv_pcl'   ,   21,  690,  711, 1000, 0, 10000)
-   
-hpvx_pcl    = TH1F ('hpvx_pcl'  , 'hpvx_pcl'   ,  1000, -0.2,  0.2)
-hpvy_pcl    = TH1F ('hpvy_pcl'  , 'hpvy_pcl'   ,  1000, -0.2,  0.2)
-hpvz_pcl    = TH1F ('hpvz_pcl'  , 'hpvz_pcl'   ,   400, -20,   20 )
-
-# stream express histos
-hlumi_se    = TH1F ('hlumi_se'  , 'hlumi_se'   ,   21,  690,  711)
-hnpv_se     = TH2F ('hnpv_se'   , 'hnpv_se'    ,   21,  690,  711, 1000, 0, 10000)
+# histos
+hlumi_base = TH1F ('hlumi_base'  , 'hlumi_base'   , nbins, int(options.startlumi),  int(options.endlumi))
+hnpv_base  = TH2F ('hnpv_base'   , 'hnpv_base'    , nbins, int(options.startlumi),  int(options.endlumi), 1000, 0, 10000)
          
-hpvx_se     = TH1F ('hpvx_se'   , 'hpvx_se'    ,  1000, -0.2,  0.2)
-hpvy_se     = TH1F ('hpvy_se'   , 'hpvy_se'    ,  1000, -0.2,  0.2)
-hpvz_se     = TH1F ('hpvz_se'   , 'hpvz_se'    ,   400, -20,   20 )
+hpvx_base  = TH1F ('hpvx_base'   , 'hpvx_base'    ,  1000, -0.2,  0.2)
+hpvy_base  = TH1F ('hpvy_base'   , 'hpvy_base'    ,  1000, -0.2,  0.2)
+hpvz_base  = TH1F ('hpvz_base'   , 'hpvz_base'    ,   400, -20 ,  20 )
 
+hpvx_base.GetXaxis().SetTitle('PV x [cm]')
+hpvy_base.GetXaxis().SetTitle('PV y [cm]')
+hpvz_base.GetXaxis().SetTitle('PV z [cm]')
 
-hpvx_se.GetXaxis().SetTitle('PV x [cm]')
-hpvy_se.GetXaxis().SetTitle('PV y [cm]')
-hpvz_se.GetXaxis().SetTitle('PV z [cm]')
+print 'filling...'
 
-print 'histos created'
-
-fillHistos(tree_pcl   , 
-           hlumi_pcl  , 
-           hnpv_pcl   ,
-           hpvx_pcl   ,
-           hpvy_pcl   ,
-           hpvz_pcl      
+fillHistos(tree_base    , 
+           hlumi_base   , 
+           hnpv_base    ,
+           hpvx_base    ,
+           hpvy_base    ,
+           hpvz_base    
            )
 
-print 'filled 1'
+print 'filled '
 
-fillHistos(tree_se    , 
-           hlumi_se   , 
-           hnpv_se    ,
-           hpvx_se    ,
-           hpvy_se    ,
-           hpvz_se    
-           )
+list_base.extend (( hpvx_base,  hpvy_base,  hpvz_base ))
 
-print 'filled 2'
-
-list_pcl.extend(( hpvx_pcl, hpvy_pcl, hpvz_pcl))
-list_se.extend (( hpvx_se,  hpvy_se,  hpvz_se ))
-
-for i in list_pcl:
-  i.SetLineColor(2)
-  
-
-outfile = TFile.Open('histosPV_ReplayVsStreamExpress.root', 'recreate')
+outfile = TFile.Open(options.output, 'recreate')
 outfile.cd()
-for i in list_pcl:
+for i in list_base:
   i.Write()
-for i in list_se:
-  i.Write()
-hnpv_pcl  .Write()
-hnpv_se   .Write()
-outfile.Close() 
+hnpv_base.Write()
+
+outfile  .Close() 
    

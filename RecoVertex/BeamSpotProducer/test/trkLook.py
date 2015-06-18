@@ -166,7 +166,7 @@ hd0_base  .GetXaxis().SetTitle('d0'           )
 hz0_base  .GetXaxis().SetTitle('z0'           )
 heta_base .GetXaxis().SetTitle('#eta'         )
 
-print 'histos created'
+print 'filling...'
 
 fillHistos(tree_base        , 
            hlumi_base       , 
@@ -194,78 +194,6 @@ print 'filled '
 
 list_base.extend ((    hpixL_base,       htotL_base,       hchi2_base,       hpt_base,       hd0_base,       hz0_base,       heta_base ))
 list_base.extend((hpixL_good_base,  htotL_good_base,  hchi2_good_base,  hpt_good_base,  hd0_good_base,  hz0_good_base,  heta_good_base ))
-
-
-# if options.compfile:  
-# 
-#   file_comp = TFile.Open(options.compfile, 'r')
-#   tree_comp = file_comp.Get('mytree')
-# 
-#   try:
-#     tree_comp.GetEntries()
-#   except:
-#     print 'track tree not found in comparison file'
-#     exit()
-
-  # comparison histos
-#   hlumi_comp       = TH1F ('hlumi_comp'      , 'hlumi_comp'      ,  nbins, int(options.startlumi),  int(options.endlumi))
-#   hntracks_comp    = TH2F ('hntracks_comp'   , 'hntracks_comp'   ,  nbins, int(options.startlumi),  int(options.endlumi), 1000, 0, 50000)
-#   hgtracks_comp    = TH2F ('hgtracks_comp'   , 'hgtracks_comp'   ,  nbins, int(options.startlumi),  int(options.endlumi), 1000, 0, 50000)
-#   hphi_d0_comp     = TH2F ('hphi_d0_comp'    , 'hphi_d0_comp'    ,  314, -3.14, 3.14, 500, -0.5, 0.5)
-#   hphi_d0_g_comp   = TH2F ('hphi_d0_g_comp'  , 'hphi_d0_g_comp'  ,  314, -3.14, 3.14, 500, -0.5, 0.5)
-#  
-#   hpixL_comp       = TH1F ('hpixL_comp'      , 'hpixL_comp'      ,   20,   0,  20)
-#   htotL_comp       = TH1F ('htotL_comp'      , 'htotL_comp'      ,   20,   0,  20)
-#   hchi2_comp       = TH1F ('hchi2_comp'      , 'hchi2_comp'      ,  100,   0,  10)
-#   hpt_comp         = TH1F ('hpt_comp'        , 'hpt_comp'        ,   70,   0, 100)
-#   hd0_comp         = TH1F ('hd0_comp'        , 'hd0_comp'        ,  100,   0,  10)
-#   hz0_comp         = TH1F ('hz0_comp'        , 'hz0_comp'        ,  200, -20,  20)
-#   heta_comp        = TH1F ('heta_comp'       , 'heta_comp'       ,   60,  -3,   3)
-# 
-#   hpixL_good_comp  = TH1F ('hpixL_good_comp' , 'hpixL_good_comp' ,   20,   0,  20)
-#   htotL_good_comp  = TH1F ('htotL_good_comp' , 'htotL_good_comp' ,   20,   0,  20)
-#   hchi2_good_comp  = TH1F ('hchi2_good_comp' , 'hchi2_good_comp' ,  100,   0,  10)
-#   hpt_good_comp    = TH1F ('hpt_good_comp'   , 'hpt_good_comp'   ,   70,   0, 100)
-#   hd0_good_comp    = TH1F ('hd0_good_comp'   , 'hd0_good_comp'   ,  100,   0,  10)
-#   hz0_good_comp    = TH1F ('hz0_good_comp'   , 'hz0_good_comp'   ,  200, -20,  20)
-#   heta_good_comp   = TH1F ('heta_good_comp'  , 'heta_good_comp'  ,   60,  -3,   3)
-# 
-#   list_comp = []
-# 
-#   fillHistos(tree_comp       , 
-#              hlumi_comp      , 
-#              hntracks_comp   ,
-#              hgtracks_comp   ,
-#              hpixL_comp      ,
-#              htotL_comp      ,
-#              hchi2_comp      ,
-#              hpt_comp        ,
-#              hd0_comp        ,
-#              hz0_comp        ,
-#              heta_comp       ,
-#              hphi_d0_comp    ,
-#              hpixL_good_comp ,
-#              htotL_good_comp ,
-#              hchi2_good_comp ,
-#              hpt_good_comp   ,
-#              hd0_good_comp   ,
-#              hz0_good_comp   ,
-#              heta_good_comp  ,
-#              hphi_d0_g_comp
-#              )
-# 
-#   print 'filled comparison histos'
-# 
-#   list_comp.extend((hpixL_comp,           htotL_comp,      hchi2_comp,      hpt_comp,      hd0_comp,      hz0_comp,      heta_comp))
-#   list_comp.extend((hpixL_good_comp, htotL_good_comp, hchi2_good_comp, hpt_good_comp, hd0_good_comp, hz0_good_comp, heta_good_comp))
-# 
-#   for i in list_comp:
-#     i.SetLineColor(2)
-# 
-# 
-
-  
-
 
 outfile = TFile.Open(options.output, 'recreate')
 outfile.cd()
