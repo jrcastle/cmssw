@@ -123,6 +123,7 @@ for var in variables:
     stats.SetX2NDC(0.89)
     stats.SetTextColor(2)
 
+    stackPad.SetLogy(var[7])
     # draw legend
     if options.legend:
       entry_base = options.legend.split(',')[0]
@@ -138,7 +139,6 @@ for var in variables:
     if options.diff:
       c.SetCanvasSize(600,900)
       stackPad.SetBottomMargin(0.2)
-      stackPad.SetLogy(var[7])
       ratioPad.cd()
       ratioPad.SetGridy(True)
       ratioPad.SetBottomMargin(0.2)
