@@ -27,7 +27,7 @@ TGaxis.SetMaxDigits(3)
 
 file = TFile.Open(options.input  , 'r')
 if options.compfile:
-  file_comp = TFile.Open(options.input  , 'r')
+  file_comp = TFile.Open(options.compfile  , 'r')
 
 c = TCanvas('', '', 600,400)
 c.cd()
@@ -107,7 +107,6 @@ for var in variables:
 
   # same for file2, if present
   if options.compfile:
-    file_comp = TFile.Open(options.input  , 'r')
 
     h_comp = file_comp.Get(var[0] + '_base')
     h_comp.SetLineColor(2)
