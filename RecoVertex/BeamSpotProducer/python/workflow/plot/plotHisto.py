@@ -105,6 +105,7 @@ for var in variables:
   stats.SetX2NDC(0.89)
   stats.SetName('stat1')
 
+  stackPad.SetLogy(var[7])
   # same for file2, if present
   if options.compfile:
 
@@ -123,7 +124,6 @@ for var in variables:
     stats.SetX2NDC(0.89)
     stats.SetTextColor(2)
 
-    stackPad.SetLogy(var[7])
     # draw legend
     if options.legend:
       entry_base = options.legend.split(',')[0]
