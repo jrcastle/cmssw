@@ -39,7 +39,8 @@ def getLastUploadedIOV(databaseTag, tagName, logger = None, maxIOV = 2e13):
     
     return lastIOV
 
-def getListOfUploadedIOV(databaseTag, firstIOV = None, lastIOV = None, maxIOV = 2e13):
+def getListOfUploadedIOV(databaseTag, firstIOV = None, 
+                         lastIOV = None, maxIOV = 2e13, verbose = False):
     '''
     This function gets returns a list of DBEntry objects.
     firstIOV, lastIOV first and last run to consider 
@@ -55,6 +56,12 @@ def getListOfUploadedIOV(databaseTag, firstIOV = None, lastIOV = None, maxIOV = 
     conddb_query = Popen(listIOVCommand, stdout = PIPE, stderr = PIPE)
     out, err = conddb_query.communicate()
 
+    if verbose:
+        print 'OUT =================='
+        print out
+        print 'ERR =================='
+        print err
+
     # do not consider bla bla lines
     toSkip = ['Since', '-----', '','  Run']
     
@@ -69,6 +76,35 @@ def getListOfUploadedIOV(databaseTag, firstIOV = None, lastIOV = None, maxIOV = 
                  if dbe.run >= firstIOV and dbe.run <= lastIOV]
     
     return dbEntries
+
+def getDBtagFromGT(globalTag):
+    '''
+    This function returns the tag in the condDB for BeamSpotObjectsRcd
+    given a Global Tag.
+    '''
+    
+    # Examples
+    # conddb --nocolors list GR_R_75_V4A
+    
+    listIOVCommand = ['conddb', '--nocolors', 'list', globalTag]
+    
+    conddb_query = Popen(listIOVCommand, stdout = PIPE, stderr = PIPE)
+    out, err = conddb_query.communicate()
+
+    # create a container of lines from the stdout
+    lines = out.split('\n')
+    
+    dbtag = 'UNDEFINED'
+    
+    for line in lines:
+        try:
+            if line.split()[0] == 'BeamSpotObjectsRcd':
+                dbtag = line.split()[2]
+        except:
+            pass      
+    
+    return dbtag    
+
 
 def dumpXMLPayloadByHash(hash):
     '''
@@ -95,15 +131,44 @@ def dumpXMLPayloadByHash(hash):
 
 if __name__ == '__main__':
 
-    lastIOV = getLastUploadedIOV('BeamSpotObjects_2009_LumiBased_SigmaZ_v29_offline',
-                                 ' ',
-                                 maxIOV = 50)
-                                  
-    print lastIOV                              
+#     lastIOV = getLastUploadedIOV('BeamSpotObjects_2009_LumiBased_SigmaZ_v29_offline',
+#                                  ' ',
+#                                  maxIOV = 50)
+#                                   
+#     print lastIOV                              
+# 
+#     listOfIOVs = getListOfUploadedIOV('BeamSpotObjects_PCL_byLumi_v0_prompt',
+#                                       246908,
+#                                       300000)
+#                                       
+#     for dbe in listOfIOVs:
+#         print vars(dbe)
 
-    listOfIOVs = getListOfUploadedIOV('BeamSpotObjects_PCL_byLumi_v0_prompt',
-                                      246908,
-                                      300000)
-                                      
+#     dbtag = getDBtagFromGT('GR_R_75_V4A')
+#     print dbtag
+#     listOfIOVs = getListOfUploadedIOV(dbtag, 165633, 165633)
+#     for dbe in listOfIOVs:
+#         print vars(dbe)
+#     
+#     myxml = dumpXMLPayloadByHash('1ba41ba0c648041a0dc77f2b71058b5d062dee40')
+#     
+#     from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
+#     bs = BeamSpot()
+#     bs.ReadXML(myxml)
+#     bs.Print()
+
+
+    from RecoVertex.BeamSpotProducer.workflow.objects.BeamSpotObj import BeamSpot
+    from RecoVertex.BeamSpotProducer.workflow.objects.PayloadObj  import Payload
+    bslist = []
+
+    dbtag = getDBtagFromGT('GR_E_V48')
+    print dbtag
+    listOfIOVs = getListOfUploadedIOV(dbtag, 246809, 999999, verbose = True)
     for dbe in listOfIOVs:
-        print vars(dbe)
+        print vars(dbe) 
+        myxml = dumpXMLPayloadByHash(dbe.hash)
+        bs = BeamSpot()
+        bs.ReadXML(myxml)
+        bs.Print()
+        bslist.append(bs)

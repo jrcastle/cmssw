@@ -10,12 +10,13 @@ from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands import getListOfU
 from RecoVertex.BeamSpotProducer.workflow.utils.condDbCommands import dumpXMLPayloadByHash
 
 
-# databaseTag = 'BeamSpotObjects_PCL_byLumi_v0_prompt'
-databaseTag = 'BeamSpotObjects_PCL_byRun_v0_prompt'
+databaseTag = 'BeamSpotObjects_PCL_byLumi_v0_prompt'
+# databaseTag = 'BeamSpotObjects_PCL_byRun_v0_prompt'
 firstIOV    = 246908 #247321
 lastIOV     = 999999 #247324
 # plFile      = 'all_runs_16_june_2015_by_run.txt'#'dummy_bs.txt'
-plFile      = 'dummy_bs.txt'
+# plFile      = 'dummy_bs.txt'
+plFile      = 'all_iov_24_june_2015_by_lumi.txt'#'dummy_bs.txt'
 
 dbentries = getListOfUploadedIOV(databaseTag, firstIOV, lastIOV)
 
@@ -48,11 +49,11 @@ for i, entry in enumerate(dbentries):
 
 mypl = Payload(plFile)
 
-mypl.plot('X'         , 247323, savePdf = True)
-mypl.plot('Y'         , 247323, savePdf = True)
-mypl.plot('Z'         , 247323, savePdf = True)
-mypl.plot('sigmaZ'    , 247323, savePdf = True)
-mypl.plot('dxdz'      , 247323, savePdf = True)
-mypl.plot('dydz'      , 247323, savePdf = True)
-mypl.plot('beamWidthX', 247323, savePdf = True)
-mypl.plot('beamWidthY', 247323, savePdf = True)
+mypl.plot('X'         , 246908, 246908, savePdf = True)
+mypl.plot('Y'         , 246908, 246908, savePdf = True)
+mypl.plot('Z'         , 246908, 246908, savePdf = True)
+mypl.plot('sigmaZ'    , 246908, 246908, savePdf = True)
+mypl.plot('dxdz'      , 246908, 246908, savePdf = True)
+mypl.plot('dydz'      , 246908, 246908, savePdf = True)
+mypl.plot('beamWidthX', 246908, 246908, savePdf = True)
+mypl.plot('beamWidthY', 246908, 246908, savePdf = True)
