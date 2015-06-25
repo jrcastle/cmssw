@@ -37,4 +37,5 @@ def readJson(firstRun = -1, fileName = '', packed = True):
 if __name__ == '__main__':
     myjson = readJson(194000, 
                       '../cfg/beamspot_payload_2012BONLY_merged_JSON_all.txt')
+    myjson = readJson(fileName = 'json_DCSONLY.txt')                  
     print myjson                  
