@@ -53,19 +53,33 @@ unpackedmyjson = unpackList(myjson)
 #       146
 #     ]
 
-print '\n'*2, myjson[247267]                  
-mypairs = group(unpackedmyjson[247267])
-print mypairs
+lumilists = {}
 
-print '\n'*2, myjson[246959]                  
-mypairs = group(unpackedmyjson[246959])
-print mypairs
+for k, v in unpackedmyjson.items():
+    lumiPairs = group(v)
+    lumilist = ['%d:%d-%d:%d' %(k, p[0], k, p[1]) for p in lumiPairs]
+    lumilists[k] = lumilist
 
-print '\n'*2, myjson[247398]                  
-mypairs = group(unpackedmyjson[247398])
-print mypairs
+print lumilists[246908]
 
-
-
-print mypairs
-
+# lumilist_246908 = [
+# '246908:0-246908:10',
+# '246908:11-246908:20'
+# ]
+# 
+# print '\n'*2, myjson[247267]                  
+# mypairs = group(unpackedmyjson[247267])
+# print mypairs
+# 
+# print '\n'*2, myjson[246959]                  
+# mypairs = group(unpackedmyjson[246959])
+# print mypairs
+# 
+# print '\n'*2, myjson[247398]                  
+# mypairs = group(unpackedmyjson[247398])
+# print mypairs
+# 
+# 
+# 
+# print mypairs
+# 
