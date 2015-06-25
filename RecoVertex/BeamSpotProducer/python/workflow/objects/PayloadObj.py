@@ -208,10 +208,14 @@ class Payload(object):
         histo.GetYaxis().SetTitle('BeamSpot %s %s' 
                                   %(variable, '[cm]'*(not 'dz' in variable)))
 
+        mymax = 1.2 * max([point[1] for point in points])
+        mymin = 0.8 * min([point[1] for point in points])
+
         histo.SetMarkerStyle(8)
         histo.SetLineColor(ROOT.kRed)
         histo.SetMarkerColor(ROOT.kBlack)
         histo.GetYaxis().SetTitleOffset(1.5)
+        histo.GetYaxis().SetRangeUser(mymin, mymax)
        
         c1 = ROOT.TCanvas('','',1400,800)
         ROOT.gPad.SetGridx()
