@@ -112,7 +112,7 @@ class Payload(object):
         return runsAndLumis
 
     def plot(self, variable, iRun, fRun, iLS = -1, fLS = 1e6, 
-             savePdf = False, returnHisto = False):
+             savePdf = False, returnHisto = False, dilated = 0):
         '''
         Plot a BS parameter as a function of LS.
         Allows multiple LS bins.
@@ -163,7 +163,7 @@ class Payload(object):
         bins = sorted(list(set(bins)))       
         abins = array('f', bins)
 
-        histo = ROOT.TH1F(variable + '_support', '', len(abins) - 1, abins)
+        histo = ROOT.TH1F(variable, '', len(abins) - 1, abins)
         
         for i, item in enumerate(points):
             index = histo.FindBin(points[i][0]) 
@@ -179,8 +179,9 @@ class Payload(object):
         if iRun == fRun:
             iLS = max(iLS, min([v.IOVfirst for v in nowBS.values()]))
             fLS = min(fLS, max([v.IOVlast  for v in nowBS.values()]))
-            histo.SetTitle('Run %d Lumi %d - %d'  %(iRun, iLS, fLS))
-            histo.GetXaxis().SetTitle('Lumi Section')
+            if not dilated:
+                histo.SetTitle('Run %d Lumi %d - %d'  %(iRun, iLS, fLS))
+                histo.GetXaxis().SetTitle('Lumi Section')
         
         else:
             for index, label in binLabels.items():
@@ -198,9 +199,10 @@ class Payload(object):
             i = points[j][0] - points[j][2] - offset
             f = points[j][0] + points[j][2] - (points[j][2] == 0.5) - offset            
             label = histo.GetXaxis().GetBinLabel(binIndex)
-            histo.GetXaxis().SetBinLabel(binIndex, 
-                                         label + (not byrun) * 
-                                         (' LS %d-%d' %(i, f)))            
+            if not dilated:
+                histo.GetXaxis().SetBinLabel(binIndex, 
+                                             label + (not byrun) * 
+                                             (' LS %d-%d' %(i, f)))            
             
         histo.GetXaxis().LabelsOption('v')
         histo.GetXaxis().SetTitleOffset(2.8)
@@ -208,18 +210,24 @@ class Payload(object):
         histo.GetYaxis().SetTitle('BeamSpot %s %s' 
                                   %(variable, '[cm]'*(not 'dz' in variable)))
 
-        mymax = 1.2 * max([point[1] for point in points])
-        mymin = 0.8 * min([point[1] for point in points])
+        funcmax = max([point[1] for point in points])
+        funcmin = min([point[1] for point in points])
+        ave     = 0.5 * (funcmax + funcmin)
+        
+        mymax = max(1.1 * ave, funcmax) 
+        mymin = min(0.9 * ave, funcmin)
 
         histo.SetMarkerStyle(8)
         histo.SetLineColor(ROOT.kRed)
         histo.SetMarkerColor(ROOT.kBlack)
-        histo.GetYaxis().SetTitleOffset(1.5)
+        histo.GetYaxis().SetTitleOffset(1.5 - 0.2 * dilated)
         histo.GetYaxis().SetRangeUser(mymin, mymax)
        
-        c1 = ROOT.TCanvas('','',1400,800)
+        c1 = ROOT.TCanvas('', '', 1400 + 600 * dilated, 800)
         ROOT.gPad.SetGridx()
         ROOT.gPad.SetGridy()
+        gridLineWidth = int(max(1, ROOT.gStyle.GetGridWidth() / max(1., dilated)))
+        ROOT.gStyle.SetGridWidth(gridLineWidth)
         ROOT.gStyle.SetOptStat(False)
         ROOT.gPad.SetBottomMargin(0.27)
         histo.Draw()
