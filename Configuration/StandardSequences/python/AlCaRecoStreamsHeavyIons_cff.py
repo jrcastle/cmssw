@@ -18,7 +18,7 @@ from Alignment.CommonAlignmentProducer.ALCARECOTkAlCosmics0THLT_cff import *
 # AlCaReco for track based alignment using isoMu events
 from Alignment.CommonAlignmentProducer.ALCARECOTkAlMuonIsolated_cff import *
 # AlCaReco for track based alignment using J/Psi events
-from Alignment.CommonAlignmentProducer.ALCARECOTkAlJpsiMuMu_cff import *
+from Alignment.CommonAlignmentProducer.ALCARECOTkAlJpsiMuMuHI_cff import *
 # AlCaReco for track based alignment using Upsilon events
 from Alignment.CommonAlignmentProducer.ALCARECOTkAlUpsilonMuMu_cff import *
 # AlCaReco for track based alignment using MinBias events
@@ -102,7 +102,7 @@ from DQMOffline.Configuration.AlCaRecoDQMHI_cff import *
 
 pathALCARECOTkAlZMuMu = cms.Path(seqALCARECOTkAlZMuMu*ALCARECOTkAlZMuMuDQM)
 pathALCARECOTkAlMuonIsolated = cms.Path(seqALCARECOTkAlMuonIsolated*ALCARECOTkAlMuonIsolatedDQM)
-pathALCARECOTkAlJpsiMuMu = cms.Path(seqALCARECOTkAlJpsiMuMu*ALCARECOTkAlJpsiMuMuDQM)
+pathALCARECOTkAlJpsiMuMuHI = cms.Path(seqALCARECOTkAlJpsiMuMuHI*ALCARECOTkAlJpsiMuMuHIDQM)
 pathALCARECOTkAlUpsilonMuMu = cms.Path(seqALCARECOTkAlUpsilonMuMu*ALCARECOTkAlUpsilonMuMuDQM)
 pathALCARECOTkAlMinBiasHI = cms.Path(seqALCARECOTkAlMinBiasHI*ALCARECOTkAlMinBiasHIDQM)
 pathALCARECOSiPixelLorentzAngle = cms.Path(seqALCARECOSiPixelLorentzAngle)
@@ -175,14 +175,14 @@ ALCARECOStreamTkAlZMuMu = cms.FilteredStream(
 	dataTier = cms.untracked.string('ALCARECO')
 	)
 
-ALCARECOStreamTkAlJpsiMuMu = cms.FilteredStream(
-	responsible = 'Andreas Mussgiller',
-	name = 'TkAlJpsiMuMu',
-	paths  = (pathALCARECOTkAlJpsiMuMu),
-	content = OutALCARECOTkAlJpsiMuMu.outputCommands,
-	selectEvents = OutALCARECOTkAlJpsiMuMu.SelectEvents,
-	dataTier = cms.untracked.string('ALCARECO')
-	)
+ALCARECOStreamTkAlJpsiMuMuHI = cms.FilteredStream(
+        responsible = 'James Castle',
+        name = 'TkAlJpsiMuMuHI',
+        paths  = (pathALCARECOTkAlJpsiMuMuHI),
+        content = OutALCARECOTkAlJpsiMuMuHI.outputCommands,
+        selectEvents = OutALCARECOTkAlJpsiMuMuHI.SelectEvents,
+        dataTier = cms.untracked.string('ALCARECO')
+        )
 
 ALCARECOStreamTkAlUpsilonMuMu = cms.FilteredStream(
 	responsible = 'Andreas Mussgiller',
