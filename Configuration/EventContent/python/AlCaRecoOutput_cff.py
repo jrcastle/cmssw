@@ -19,6 +19,7 @@ from Alignment.CommonAlignmentProducer.ALCARECOTkAlMuonIsolated_Output_cff impor
 from Alignment.CommonAlignmentProducer.ALCARECOTkAlMuonIsolatedPA_Output_cff import *
 # AlCaReco for track based alignment using J/Psi events
 from Alignment.CommonAlignmentProducer.ALCARECOTkAlJpsiMuMu_Output_cff import *
+from Alignment.CommonAlignmentProducer.ALCARECOTkAlJpsiMuMuHI_Output_cff import *
 # AlCaReco for track based alignment using Upsilon events
 from Alignment.CommonAlignmentProducer.ALCARECOTkAlUpsilonMuMu_Output_cff import *
 # AlCaReco for track based alignment using MinBias events
