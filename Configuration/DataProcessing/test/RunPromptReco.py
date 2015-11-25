@@ -28,6 +28,9 @@ class RunPromptReco:
         self.inputLFN = None
         self.alcaRecos = None
         self.PhysicsSkims = None
+        self.dqmSeq = None
+        self.setRepacked = False
+        self.isRepacked = False
 
     def __call__(self):
         if self.scenario == None:
@@ -89,6 +92,12 @@ class RunPromptReco:
                 if self.PhysicsSkims:
                     kwds['PhysicsSkims'] = self.PhysicsSkims
 
+                if self.dqmSeq:
+                    kwds['dqmSeq'] = self.dqmSeq
+
+                if self.setRepacked:
+                    kwds['repacked'] = self.isRepacked
+
             process = scenario.promptReco(self.globalTag, **kwds)
 
         except NotImplementedError, ex:
@@ -115,7 +124,7 @@ class RunPromptReco:
 
 if __name__ == '__main__':
     valid = ["scenario=", "reco", "aod", "miniaod","dqm", "dqmio", "no-output",
-             "global-tag=", "lfn=", "alcarecos=", "PhysicsSkims=" ]
+             "global-tag=", "lfn=", "alcarecos=", "PhysicsSkims=", "dqmSeq=", "isRepacked", "isNotRepacked" ]
     usage = \
 """
 RunPromptReco.py <options>
@@ -127,11 +136,13 @@ Where options are:
  --miniaod (to enable MiniAOD output)
  --dqm (to enable DQM output)
  --dqmio (to enable DQMIO output)
+ --isRepacked --isNotRepacked (to override default repacked flags)
  --no-output (create config with no output, overrides other settings)
  --global-tag=GlobalTag
  --lfn=/store/input/lfn
  --alcarecos=alcareco_plus_seprated_list
  --PhysicsSkims=skim_plus_seprated_list
+ --dqmSeq=dqmSeq_plus_separated_list
 
 Example:
 
@@ -175,5 +186,14 @@ python RunPromptReco.py --scenario=ppRun2 --reco --aod --dqmio --global-tag GLOB
             recoinator.alcaRecos = [ x for x in arg.split('+') if len(x) > 0 ]
         if opt == "--PhysicsSkims":
             recoinator.PhysicsSkims = [ x for x in arg.split('+') if len(x) > 0 ]
+        if opt == "--dqmSeq":
+            recoinator.dqmSeq = [ x for x in arg.split('+') if len(x) > 0 ]
+        if opt == "--isRepacked":
+            recoinator.setRepacked = True
+            recoinator.isRepacked = True
+        if opt == "--isNotRepacked":
+            recoinator.setRepacked = True
+            recoinator.isRepacked = False
+
 
     recoinator()

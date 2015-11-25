@@ -22,7 +22,7 @@ using namespace std;
 using namespace l1t;
 
 
-Stage1Layer2EGammaAlgorithmImpHW::Stage1Layer2EGammaAlgorithmImpHW(CaloParamsStage1* params) : params_(params) {};
+Stage1Layer2EGammaAlgorithmImpHW::Stage1Layer2EGammaAlgorithmImpHW(CaloParamsHelper* params) : params_(params) {};
 
 Stage1Layer2EGammaAlgorithmImpHW::~Stage1Layer2EGammaAlgorithmImpHW(){};
 
@@ -31,9 +31,6 @@ Stage1Layer2EGammaAlgorithmImpHW::~Stage1Layer2EGammaAlgorithmImpHW(){};
 void l1t::Stage1Layer2EGammaAlgorithmImpHW::processEvent(const std::vector<l1t::CaloEmCand> & EMCands, const std::vector<l1t::CaloRegion> & regions, const std::vector<l1t::Jet> * jets, std::vector<l1t::EGamma>* egammas) {
 
 
-  std::string regionPUSType = params_->regionPUSType();
-  std::vector<double> regionPUSParams = params_->regionPUSParams();
-
   std::vector<l1t::CaloRegion> *subRegions = new std::vector<l1t::CaloRegion>();
   std::vector<l1t::EGamma> *preSortEGammas = new std::vector<l1t::EGamma>();
   std::vector<l1t::EGamma> *preGtEGammas = new std::vector<l1t::EGamma>();
@@ -41,7 +38,7 @@ void l1t::Stage1Layer2EGammaAlgorithmImpHW::processEvent(const std::vector<l1t::
 
   //Region Correction will return uncorrected subregions if
   //regionPUSType is set to None in the config
-  RegionCorrection(regions, subRegions, regionPUSParams, regionPUSType);
+  RegionCorrection(regions, subRegions, params_);
 
   // ----- need to cluster jets in order to compute jet isolation ----
   std::vector<l1t::Jet> *unCorrJets = new std::vector<l1t::Jet>();
@@ -147,6 +144,8 @@ unsigned l1t::Stage1Layer2EGammaAlgorithmImpHW::isoLutIndex(unsigned int egPt,un
   const unsigned int nbitsEG=6;  // number of bits used for EG bins in LUT file (needed for left shift operation)
   //  const unsigned int nbitsJet=9; // not used but here for info  number of bits used for Jet bins in LUT file
 
+  //jetPt &= 511; // Take only the LSB 9 bits to match firmware.
+  if(jetPt > 511) jetPt = 511;
   unsigned int address= (jetPt << nbitsEG) + egPt;
   // std::cout << address << "\t## " << egPt << " " << jetPt << std::endl;
   return address;

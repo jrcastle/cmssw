@@ -41,11 +41,10 @@ V00-03-25
 using namespace std;
 using namespace edm;
 
-const char * BeamMonitor::formatFitTime( const time_t & t )  {
+void BeamMonitor::formatFitTime(char *ts, const time_t & t )  {
 #define CET (+1)
 #define CEST (+2)
 
-  static char ts[] = "yyyy-Mm-dd hh:mm:ss";
   tm * ptm;
   ptm = gmtime ( &t );
   int year = ptm->tm_year;
@@ -64,8 +63,6 @@ const char * BeamMonitor::formatFitTime( const time_t & t )  {
   unsigned int b = strlen(ts);
   while (ts[--b] == ' ') {ts[b] = 0;}
 #endif
-  return ts;
-
 }
 
 #define buffTime (23)
@@ -430,7 +427,8 @@ void BeamMonitor::beginRun(const edm::Run& r, const EventSetup& context) {
   ftimestamp = r.beginTime().value();
   tmpTime = ftimestamp >> 32;
   startTime = refTime =  tmpTime;
-  const char* eventTime = formatFitTime(tmpTime);
+  char eventTime[64];
+  formatFitTime(eventTime, tmpTime);
   std::cout << "TimeOffset = " << eventTime << std::endl;
   TDatime da(eventTime);
   if (debug_) {
@@ -494,10 +492,12 @@ if(nthlumi > nextlumi_){
      map<int, std::time_t>::iterator itbstime=mapBeginBSTime.begin();
      map<int, std::time_t>::iterator itpvtime=mapBeginPVTime.begin();
 
+    if(processed_){// otherwise if false then LS range of fit get messed up because we don't remove trk/pvs but we remove LS begin value . This prevent it as it happened if LS is there but no event are processed for some reason
      mapBeginBSLS.erase(itbs);
      mapBeginPVLS.erase(itpv);
      mapBeginBSTime.erase(itbstime);
      mapBeginPVTime.erase(itpvtime);
+     }
 
             /*//not sure if want this or not ??
             map<int, int>::iterator itgapb=mapBeginBSLS.begin();
@@ -1379,7 +1379,8 @@ void BeamMonitor::endJob(const LuminosityBlock& lumiSeg,
 
 //--------------------------------------------------------
 void BeamMonitor::scrollTH1(TH1 * h, time_t ref) {
-  const char* offsetTime = formatFitTime(ref);
+  char offsetTime[64];
+  formatFitTime(offsetTime, ref);
   TDatime da(offsetTime);
   if (lastNZbin > 0) {
     double val = h->GetBinContent(lastNZbin);

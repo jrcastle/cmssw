@@ -434,6 +434,7 @@ RECOEventContent.outputCommands.extend(EvtScalersRECO.outputCommands)
 RECOEventContent.outputCommands.extend(TcdsEventContent.outputCommands)
 RECOEventContent.outputCommands.extend(CommonEventContent.outputCommands)
 RECOEventContent.outputCommands.extend(EITopPAGEventContent.outputCommands)
+RECOEventContent.outputCommands += ['keep int_bunchSpacingProducer_*_*']
 
 RAWRECOEventContent.outputCommands.extend(RECOEventContent.outputCommands)
 RAWRECOEventContent.outputCommands.extend(cms.untracked.vstring(
@@ -464,6 +465,7 @@ AODEventContent.outputCommands.extend(EvtScalersAOD.outputCommands)
 AODEventContent.outputCommands.extend(TcdsEventContent.outputCommands)
 AODEventContent.outputCommands.extend(CommonEventContent.outputCommands)
 AODEventContent.outputCommands.extend(EITopPAGEventContent.outputCommands)
+AODEventContent.outputCommands += ['keep int_bunchSpacingProducer_*_*']
 
 RAWSIMEventContent.outputCommands.extend(RAWEventContent.outputCommands)
 RAWSIMEventContent.outputCommands.extend(SimG4CoreRAW.outputCommands)
@@ -509,11 +511,22 @@ PREMIXEventContent.outputCommands.extend(DigiToRawFEVT.outputCommands)
 PREMIXEventContent.outputCommands.extend(CommonEventContent.outputCommands)
 PREMIXEventContent.outputCommands.append('keep RPCDetIdRPCDigiMuonDigiCollection_simMuonRPCDigis_*_*')
 PREMIXEventContent.outputCommands.append('keep *_mix_MergedTrackTruth_*')
+PREMIXEventContent.outputCommands.append('keep StripDigiSimLinkedmDetSetVector_simSiStripDigis_*_*')
+PREMIXEventContent.outputCommands.append('keep PixelDigiSimLinkedmDetSetVector_simSiPixelDigis_*_*')
+PREMIXEventContent.outputCommands.append('keep StripDigiSimLinkedmDetSetVector_simMuonCSCDigis_*_*')
+PREMIXEventContent.outputCommands.append('keep RPCDigiSimLinkedmDetSetVector_*_*_*')
+PREMIXEventContent.outputCommands.append('keep DTLayerIdDTDigiSimLinkMuonDigiCollection_*_*_*')
 
 PREMIXRAWEventContent.outputCommands.extend(RAWSIMEventContent.outputCommands)
 PREMIXRAWEventContent.outputCommands.append('keep CrossingFramePlaybackInfoNew_*_*_*')
 PREMIXRAWEventContent.outputCommands.append('drop CrossingFramePlaybackInfoNew_mix_*_*')
 PREMIXRAWEventContent.outputCommands.append('keep *_*_MergedTrackTruth_*')
+PREMIXRAWEventContent.outputCommands.append('keep *_*_StripDigiSimLink_*')
+PREMIXRAWEventContent.outputCommands.append('keep *_*_PixelDigiSimLink_*')
+PREMIXRAWEventContent.outputCommands.append('keep *_*_MuonCSCStripDigiSimLinks_*')
+PREMIXRAWEventContent.outputCommands.append('keep *_*_MuonCSCWireDigiSimLinks_*')
+PREMIXRAWEventContent.outputCommands.append('keep *_*_RPCDigiSimLink_*')
+PREMIXRAWEventContent.outputCommands.append('keep DTLayerIdDTDigiSimLinkMuonDigiCollection_*_*_*')
 
 
 REPACKRAWSIMEventContent.outputCommands.extend(REPACKRAWEventContent.outputCommands)
@@ -593,6 +606,7 @@ FEVTEventContent.outputCommands.extend(EvtScalersRECO.outputCommands)
 FEVTEventContent.outputCommands.extend(TcdsEventContent.outputCommands)
 FEVTEventContent.outputCommands.extend(CommonEventContent.outputCommands)
 FEVTEventContent.outputCommands.extend(EITopPAGEventContent.outputCommands)
+FEVTEventContent.outputCommands += ['keep int_bunchSpacingProducer_*_*']
 
 FEVTHLTALLEventContent.outputCommands.extend(FEVTEventContent.outputCommands)
 FEVTHLTALLEventContent.outputCommands.append('keep *_*_*_HLT')
@@ -657,6 +671,13 @@ FEVTDEBUGEventContent.outputCommands.extend(SimMuonFEVTDEBUG.outputCommands)
 FEVTDEBUGEventContent.outputCommands.extend(SimCalorimetryFEVTDEBUG.outputCommands)
 FEVTDEBUGHLTEventContent.outputCommands.extend(FEVTDEBUGEventContent.outputCommands)
 FEVTDEBUGHLTEventContent.outputCommands.extend(HLTDebugFEVT.outputCommands)
+FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_MergedTrackTruth_*')
+FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_StripDigiSimLink_*')
+FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_PixelDigiSimLink_*')
+FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_MuonCSCStripDigiSimLinks_*')
+FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_MuonCSCWireDigiSimLinks_*')
+FEVTDEBUGHLTEventContent.outputCommands.append('keep *_*_RPCDigiSimLink_*')
+FEVTDEBUGHLTEventContent.outputCommands.append('keep DTLayerIdDTDigiSimLinkMuonDigiCollection_*_*_*')
 RECODEBUGEventContent.outputCommands.extend(RECOSIMEventContent.outputCommands)
 RECODEBUGEventContent.outputCommands.extend(SimGeneralFEVTDEBUG.outputCommands)
 RECODEBUGEventContent.outputCommands.extend(SimTrackerDEBUG.outputCommands)
@@ -734,4 +755,6 @@ MINIAODSIMEventContent= cms.PSet(
 from PhysicsTools.PatAlgos.slimming.slimming_cff import MicroEventContent,MicroEventContentMC
 
 MINIAODEventContent.outputCommands.extend(MicroEventContent.outputCommands)
+MINIAODEventContent.outputCommands += ['keep int_bunchSpacingProducer_*_*']
 MINIAODSIMEventContent.outputCommands.extend(MicroEventContentMC.outputCommands)
+MINIAODSIMEventContent.outputCommands += ['keep int_bunchSpacingProducer_*_*']
