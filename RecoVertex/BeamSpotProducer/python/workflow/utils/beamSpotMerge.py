@@ -62,6 +62,7 @@ def splitByDrift(fullList, maxLumi = 60, splitInfo = False, run = -1):
     
     # breaking points. 
     # First LS is the first starting point by definition
+    if not len(fullList.keys()):  return []
     breaks = [fullList.keys()[0]]
         
     # lumi counter

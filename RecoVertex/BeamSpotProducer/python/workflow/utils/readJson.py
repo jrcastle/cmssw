@@ -8,7 +8,7 @@ if sys.version_info < (2,6,0):
 else:
     import simplejson as json
 
-def readJson(firstRun = -1, fileName = '', packed = True):
+def readJson(firstRun = -1, lastRun = 99999999, fileName = '', packed = True):
     '''
     Reads the json <fileName> file and casts the run 
     number from string to integer.
@@ -26,7 +26,7 @@ def readJson(firstRun = -1, fileName = '', packed = True):
         # but can work even if you passed the full json string
         jsonList = json.loads(fileName)
             
-    selected_dcs = {int(k):v for k, v in jsonList.items() if int(k) >= firstRun}
+    selected_dcs = {int(k):v for k, v in jsonList.items() if int(k) >= firstRun and int(k) <= lastRun}
     
     if packed: 
         return selected_dcs
@@ -35,7 +35,7 @@ def readJson(firstRun = -1, fileName = '', packed = True):
 
 
 if __name__ == '__main__':
-    myjson = readJson(194000, 
+    myjson = readJson(194000, 9999999,
                       '../cfg/beamspot_payload_2012BONLY_merged_JSON_all.txt')
     myjson = readJson(fileName = 'json_DCSONLY.txt')                  
     print myjson                  
