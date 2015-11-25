@@ -4,7 +4,8 @@ process = cms.Process("BSworkflow")
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-      "/store/express/Run2015A/StreamExpress/ALCARECO/TkAlMinBias-Express-v1/000/246/959/00000/14174DF2-490A-E511-9862-02163E0143E9.root",
+#       "/store/data/Run2015A/ZeroBias/RECO/PromptReco-v1/000/248/038/00000/5C3E92F8-6614-E511-BF18-02163E0143EC.root",
+      "/store/data/Run2015D/ZeroBias/RECO/PromptReco-v4/000/258/159/00000/0007AF4D-B36B-E511-8407-02163E012385.root",
     )
 )
 
@@ -37,18 +38,22 @@ process.load("RecoTracker.TrackProducer.TrackRefitters_cff")
 process.TrackRefitter.src = 'ALCARECOTkAlMinBias'
 process.TrackRefitter.NavigationSchool = ''
 
+# 
+# process.load("RecoTracker.MeasurementDet.MeasurementTrackerEventProducer_cfi")
+# process.MeasurementTrackerEvent.inactivePixelDetectorLabels = cms.VInputTag()
+# process.MeasurementTrackerEvent.inactiveStripDetectorLabels = cms.VInputTag() 
 
 ## PV refit
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 
 from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import offlinePrimaryVertices 
-process.offlinePrimaryVerticesFromRefittedTrks  = offlinePrimaryVertices.clone()
-process.offlinePrimaryVerticesFromRefittedTrks.TrackLabel                                       = cms.InputTag("TrackRefitter") 
-process.offlinePrimaryVerticesFromRefittedTrks.vertexCollections.maxDistanceToBeam              = 1
-process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.maxNormalizedChi2             = 20
-process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minSiliconLayersWithHits      = 5
-process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.maxD0Significance             = 5.0 
-process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minPixelLayersWithHits        = 2   
+process.offlinePrimaryVerticesFromRefittedTrks                                             = offlinePrimaryVertices.clone()
+process.offlinePrimaryVerticesFromRefittedTrks.TrackLabel                                  = cms.InputTag("TrackRefitter") 
+process.offlinePrimaryVerticesFromRefittedTrks.vertexCollections.maxDistanceToBeam         = 1
+process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.maxNormalizedChi2        = 20
+process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minSiliconLayersWithHits = 5
+process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.maxD0Significance        = 5.0 
+process.offlinePrimaryVerticesFromRefittedTrks.TkFilterParameters.minPixelLayersWithHits   = 2   
 
 
                      
@@ -81,7 +86,10 @@ process.d0_phi_analyzer.BSAnalyzerParameters.fitEveryNLumi   = 1
 process.d0_phi_analyzer.BSAnalyzerParameters.resetEveryNLumi = 1
 
 
-process.p = cms.Path(process.offlineBeamSpot                        + 
-                     process.TrackRefitter                          + 
-                     process.offlinePrimaryVerticesFromRefittedTrks +
-                     process.d0_phi_analyzer)
+process.p = cms.Path(
+    process.offlineBeamSpot                        + 
+#     process.MeasurementTrackerEvent                + # RIC 23/11/15, needed to fix missing product "Looking for type: MeasurementTrackerEvent"
+    process.TrackRefitter                          + 
+    process.offlinePrimaryVerticesFromRefittedTrks +
+    process.d0_phi_analyzer
+)
