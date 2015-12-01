@@ -76,6 +76,7 @@ inJsonNotInCrab = set(runsJson) - set(runsCrab)
 print 'missing runs:'
 print inJsonNotInCrab
 
+bs_listALL = []
 for irun in runsCommon:
   inJsonNotCrab, inCrabNotJson = compareLists(runsLumisCrab[irun], runsLumisJson[irun], 100, 'crab', 'json' )
   if len(inJsonNotCrab) > 0:
@@ -109,3 +110,13 @@ for irun in runsCommon:
 #     aveBeamSpot.Dump('bs_weighted_results_' + str(runNumber) + '_AllRun.txt', 'w+')
 
 
+# now evaluate average BS for ALL runs
+  pairs = [(initlumi, endlumi)]
+  for p in pairs:
+    myrange = set(range(p[0], p[1] + 1)) & set(allBS[irun].keys())
+    for i in sorted(list(myrange)):
+      bs_listALL.append(allBS[irun][i])
+
+if bs_listALL:
+  aveBeamSpot = averageBeamSpot(bs_listALL)
+  aveBeamSpot.Dump('bs_weighted_results_aveOverAllRuns.txt', 'w+')
