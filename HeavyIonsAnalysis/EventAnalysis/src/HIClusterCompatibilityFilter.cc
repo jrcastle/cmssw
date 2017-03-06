@@ -17,7 +17,9 @@ clusterPars_(iConfig.getParameter< std::vector<double> >("clusterPars")),
 nhitsTrunc_(iConfig.getParameter<int>("nhitsTrunc")),
 clusterTrunc_(iConfig.getParameter<double>("clusterTrunc")),
 pixelTune_(iConfig.getUntrackedParameter<bool>("pixelTune")),
-pixelTuneClusterPars_(iConfig.getUntrackedParameter< std::vector<double> >("pixelTuneClusterPars"))
+nhitsLineTrunc_(iConfig.getUntrackedParameter<int>("nhitsLineTrunc")),
+pixelTuneLineClusterPars_(iConfig.getUntrackedParameter< std::vector<double> >("pixelTuneLineClusterPars")),
+pixelTunePolyClusterPars_(iConfig.getUntrackedParameter< std::vector<double> >("pixelTunePolyClusterPars"))
 {}
 
 HIClusterCompatibilityFilter::~HIClusterCompatibilityFilter() {}
@@ -49,8 +51,22 @@ HIClusterCompatibilityFilter::filter(edm::Event& iEvent, const edm::EventSetup& 
       polyCut=clusterTrunc_; // no cut above clusterTrunc_
   }
   else{
-    polyCut = pixelTuneClusterPars_[0] + pixelTuneClusterPars_[1]*TMath::Log( (double)nPxlHits );
-    if(nPxlHits < nhitsTrunc_) polyCut=0;
+
+    if(nPxlHits < nhitsLineTrunc_){
+      for(unsigned int i=0; i < pixelTuneLineClusterPars_.size(); i++) {
+	polyCut += pixelTuneLineClusterPars_[i]*std::pow((double)nPxlHits,(int)i);
+      }
+    }
+    else{
+      for(unsigned int i=0; i < pixelTunePolyClusterPars_.size(); i++) {
+	polyCut += pixelTunePolyClusterPars_[i]*std::pow((double)nPxlHits,(int)i);
+      }
+    }
+
+    if(nPxlHits < nhitsTrunc_) 
+      polyCut=0;
+    if(polyCut > clusterTrunc_ && clusterTrunc_ > 0)
+      polyCut=clusterTrunc_;
   }
 
   if (clusVtxQual < polyCut) accept = false;
