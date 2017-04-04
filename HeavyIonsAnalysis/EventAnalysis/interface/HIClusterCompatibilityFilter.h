@@ -54,7 +54,9 @@ class HIClusterCompatibilityFilter : public edm::EDFilter {
     double              clusterTrunc_;  //maximum vertex compatibility value for event rejection
 
     bool pixelTune_;
-    std::vector<double> pixelTuneClusterPars_;
+    int nhitsLineTrunc_;
+    std::vector<double> pixelTuneLineClusterPars_;
+    std::vector<double> pixelTunePolyClusterPars_;
 };
 
 #endif
